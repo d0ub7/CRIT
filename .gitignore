@@ -1,11 +1,11 @@
 __pycache__/
-.DS_Store
 settings.json
 CRIT.egg-info/
 build/
 dist/
 sheets/
 data/
+/.DS_Store
 /Setup.py
 /Pipfile
 /Pipfile.lock

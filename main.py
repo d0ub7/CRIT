@@ -132,8 +132,9 @@ class TUI:
             self.char_size = char_data['size']
             self.skills_type = char_data['skills_type']
             self.casting_stat = char_data['casting_stat'] if char_data['casting_stat'] else None
-            if 'agile maneuvers' in (feat.lower() for feat in char_data['usr']['feats']):
-                self.cmb_mod = 'dexterity'
+            if 'feats' in char_data['usr']:
+                if 'agile maneuvers' in (feat.lower() for feat in char_data['usr']['feats']):
+                    self.cmb_mod = 'dexterity'
 
             self.console.print('loading attributes')
 
