@@ -1,0 +1,38 @@
+{
+	"bab": [0, 1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 9, 9, 10, 11, 12, 12, 13, 14, 15]
+	, "fortitude": [0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6]
+	, "reflex": [2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12]
+	, "will": [2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12]
+	, "spells":
+	{
+		"1": [1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+		, "2": [0, 0, 0, 1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+		, "3": [0, 0, 0, 0, 0, 0, 1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]
+		, "4": [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5]
+		, "5": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 3, 4, 4, 5, 5]
+	}
+	, "class_skills": ["appraise"
+		, "bluff"
+		, "craft"
+		, "diplomacy"
+		, "disguise"
+		, "escape_artist"
+		, "intimidate"
+		, "knowledge_arcana"
+		, "knowledge_dungeoneering"
+		, "knowledge_history"
+		, "knowledge_local"
+		, "knowledge_nobility"
+		, "knowledge_religion"
+		, "linguistics"
+		, "perception"
+		, "perform"
+		, "profession"
+		, "sense_motive"
+		, "sleight_of_hand"
+		, "spellcraft"
+		, "stealth"
+		, "use_magic_device"
+	]
+	, "casting_stat": "charisma"
+}

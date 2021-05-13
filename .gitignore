@@ -4,7 +4,6 @@ CRIT.egg-info/
 build/
 dist/
 sheets/
-data/
 CRIT/.DS_Store
 /.DS_Store
 /Setup.py
