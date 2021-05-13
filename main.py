@@ -178,9 +178,9 @@ class TUI:
 
     def startup_console(self):
         if 'WINDIR' in os.environ and 'WT_SESSION' not in os.environ and 'ALACRITTY_LOG' not in os.environ:
-            set_terminal_size(100, 50)
+            set_terminal_size(200, 150)
             windll.kernel32.SetConsoleScreenBufferSize(windll.kernel32.GetStdHandle(-11), wintypes._COORD(100, 200))
-            self.console = Console(width=97)
+            self.console = Console(width=200)
         else:
             self.console = Console()
 
