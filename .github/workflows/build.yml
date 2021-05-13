@@ -27,7 +27,7 @@ jobs:
         cd ..
         pip install -e .
     - name: Build binary
-      run: pyinstaller --additional-hooks-dir=Hooks/ -y -F -i CRIT.ico -n CRIT -c --noupx --exclude-module FixTk --exclude-module tcl --exclude-module tk --exclude-module _tkinter --exclude-module tkinter --exclude-module Tkinter main.py
+      run: pyinstaller --additional-hooks-dir=Hooks/ -y -F -n CRIT -c --noupx --exclude-module FixTk --exclude-module tcl --exclude-module tk --exclude-module _tkinter --exclude-module tkinter --exclude-module Tkinter main.py
     - name: Upload binary
       uses: actions/upload-artifact@v1
       with:
