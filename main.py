@@ -517,6 +517,7 @@ class TUI:
                         self.console.print(f'[bold red] NOT CREATING {char_name} [/bold red]')
                         return()
                     else:
+                        os.mkdir(os.path.join(self.sheets_path))
                         with open(os.path.join(self.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_')), 'w') as outfile:
                             json.dump(char_data, outfile, indent=4)
                         self.console.print(f'[bold green] CREATED {char_name} [/bold green]')
