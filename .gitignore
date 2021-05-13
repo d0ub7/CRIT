@@ -5,6 +5,7 @@ build/
 dist/
 sheets/
 CRIT/.DS_Store
+CRIT.spec
 /.DS_Store
 /Setup.py
 /Pipfile
