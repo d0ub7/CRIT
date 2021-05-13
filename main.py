@@ -61,6 +61,7 @@ class TUI:
         self.hp = 0
         self.max_hp = 99
         self.char_name = None
+        self.char_class = None
         self.char_bab = 0
         self.char_cmb = 0
         self.char_cmd = 0
@@ -68,6 +69,7 @@ class TUI:
         self.size_mod = 0
         self.skills_type = None
         self.cmb_mod = 'strength'
+        self.acp_mod = 0
 
         #### COLLECTIONS
         self.spell_obj               = recordclass('tier', 'level, save, slots, remaining, base')
@@ -456,7 +458,7 @@ class TUI:
                     char_data['saves'] = {}
                     char_data['saves']['fortitude'] = {
                         'total': 0
-                        , 'ability': 'strength'
+                        , 'ability': 'constitution'
                         , 'bonus': 0
                         , 'base': class_config['fortitude'][char_level-1]
                     }
@@ -502,7 +504,10 @@ class TUI:
                             , 'base': class_config['spells'][spell_level][char_level-1]
                         }
 
+                    # create empty usr space
                     char_data['usr'] = {}
+                    char_data['usr']['feats'] = []
+
                     really = True
                     if os.path.isfile(os.path.join(self.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_'))):
                         really = click.confirm(f'sheet for {char_name} exists, overwrite?')
@@ -523,12 +528,12 @@ class TUI:
         self.update()
         self.first_update = False
         self.setup_completer(({
-            'modify': None
-            ,'add': None
+            'usermodify': None
             ,'save': None
             ,'exit': None
             ,'user': None
             ,'main': None
+            ,'level': None
         }))
 
     #post load
@@ -559,29 +564,29 @@ class TUI:
         self.hp -= harm_value
         self.update()
 
-    # def c_equip(self, _):
-
-    # def c_unequip(self, _):
-
-    def c_modify(self, _):
-        with open (self.loaded_sheet, 'r') as f:
-            existing_data = json.load(f)
-            values = existing_data['usr'].keys()
-            attr_to_update = click.prompt('what to update (Only use if you know what you\'re doing)', type=click.Choice(values, case_sensitive=False))
-            value_to_add = click.prompt('what value should we add', type=click.STRING)
-            existing_data['usr'][attr_to_update].append(value_to_add)
-        with open (self.loaded_sheet, 'w+') as outfile:
-            json.dump(existing_data, outfile, indent=4)
-        self.console.print(f'[bold green] UPDATED {self.char_name} [/bold green]')
-
-    def c_add(self, _):
-        with open (self.loaded_sheet, 'r') as f:
-            existing_data = json.load(f)
-            key_to_add = click.prompt('what to add (Only use if you know what you\'re doing)', type=click.STRING)
-            existing_data['usr'][key_to_add] = []
-        with open (self.loaded_sheet, 'w+') as outfile:
-            json.dump(existing_data, outfile, indent=4)
-        self.console.print(f'[bold green] UPDATED {self.char_name} [/bold green]')
+    def c_usermodify(self, args):
+        if not args:
+            option = click.prompt('add or modify user element', type=click.Choice(['add', 'modify'], case_sensitive=False))
+        if option == 'add':
+            with open (self.loaded_sheet, 'r') as f:
+                existing_data = json.load(f)
+                key_to_add = click.prompt('what to add to user space (Only use if you know what you\'re doing)', type=click.STRING)
+                existing_data['usr'][key_to_add] = []
+            with open (self.loaded_sheet, 'w+') as outfile:
+                json.dump(existing_data, outfile, indent=4)
+            self.console.print(f'[bold green] UPDATED {self.char_name} [/bold green]')
+        elif option == 'modify':
+            with open (self.loaded_sheet, 'r') as f:
+                existing_data = json.load(f)
+                values = existing_data['usr'].keys()
+                attr_to_update = click.prompt('what to update (Only use if you know what you\'re doing)', type=click.Choice(values, case_sensitive=False))
+                value_to_add = click.prompt('what value should we add', type=click.STRING)
+                existing_data['usr'][attr_to_update].append(value_to_add)
+            with open (self.loaded_sheet, 'w+') as outfile:
+                json.dump(existing_data, outfile, indent=4)
+            self.console.print(f'[bold green] UPDATED {self.char_name} [/bold green]')
+        else:
+            self.console.print('enter valid option')
 
     def c_save(self, _):
         try: 
@@ -662,6 +667,45 @@ class TUI:
     def c_main(self, _):
         self.print_loaded_header()
         self.l_main_output()
+
+    def c_level(self, args):
+        if not args:
+            char_level = click.prompt('What level are you going to?', type=int)
+        else:
+            try:
+                char_level = int(args)
+            except:
+                self.console.print('please enter an int')
+                return()
+        if char_level not in range(1,21):
+            self.console.print(f'[bold red]character levels outside of 1-20 not supported![/bold red]')
+            return()
+
+        self.char_level = char_level
+        char_level = char_level-1
+        with open(os.path.join(self.data_path, 'classes', f'{self.char_class}.json'), 'r') as f:
+            class_config = json.load(f)
+            self.char_bab = class_config['bab'][char_level]
+            # up saves
+            for sav in self.save_list:
+                sav.base = class_config[sav.name][char_level]
+            # up spells 
+            self.console.print(self.spell_list)
+            self.console.print(class_config['spells'])
+            if self.spell_list:
+                self.spell_list = []
+                for level, spell in class_config['spells'].items():
+                    self.console.print(f'level {level} spell {spell}')
+                    self.spell_list.append(self.spell_obj(level = int(level)
+                                                    , save = 0
+                                                    , slots = spell[char_level]
+                                                    , remaining = spell[char_level]
+                                                    , base = spell[char_level]
+                                                    ))
+
+        self.update()
+        self.console.print('Remember to add your HP!')
+
 
 def get_options_from_dir(path):
     # returns a click.Choice
