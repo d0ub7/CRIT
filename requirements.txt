@@ -1,0 +1,7 @@
+prompt_toolkit
+rich>10
+lupa
+pathlib
+recordclass
+click
+click_completion
