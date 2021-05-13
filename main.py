@@ -4,9 +4,11 @@ import platform
 import sys
 import click
 import math
+from click.types import Choice
 import click_completion
 from string import Template
 from pathlib import Path
+from prompt_toolkit.shortcuts.prompt import prompt
 from recordclass import recordclass
 
 from prompt_toolkit import HTML, PromptSession
@@ -528,7 +530,7 @@ class TUI:
         self.update()
         self.first_update = False
         self.setup_completer(({
-            'usermodify': None
+            'modify': None
             ,'save': None
             ,'exit': None
             ,'user': None
@@ -564,29 +566,62 @@ class TUI:
         self.hp -= harm_value
         self.update()
 
-    def c_usermodify(self, args):
-        if not args:
-            option = click.prompt('add or modify user element', type=click.Choice(['add', 'modify'], case_sensitive=False))
-        if option == 'add':
-            with open (self.loaded_sheet, 'r') as f:
-                existing_data = json.load(f)
-                key_to_add = click.prompt('what to add to user space (Only use if you know what you\'re doing)', type=click.STRING)
-                existing_data['usr'][key_to_add] = []
-            with open (self.loaded_sheet, 'w+') as outfile:
-                json.dump(existing_data, outfile, indent=4)
-            self.console.print(f'[bold green] UPDATED {self.char_name} [/bold green]')
-        elif option == 'modify':
-            with open (self.loaded_sheet, 'r') as f:
-                existing_data = json.load(f)
-                values = existing_data['usr'].keys()
-                attr_to_update = click.prompt('what to update (Only use if you know what you\'re doing)', type=click.Choice(values, case_sensitive=False))
-                value_to_add = click.prompt('what value should we add', type=click.STRING)
-                existing_data['usr'][attr_to_update].append(value_to_add)
-            with open (self.loaded_sheet, 'w+') as outfile:
-                json.dump(existing_data, outfile, indent=4)
-            self.console.print(f'[bold green] UPDATED {self.char_name} [/bold green]')
-        else:
-            self.console.print('enter valid option')
+    def c_modify(self, args):
+        modify_option = click.prompt('modifiable elements:', type= click.Choice(['user', 'maxhp', 'skill', 'attribute'], case_sensitive=False))
+        if modify_option == 'user':
+            user_option = click.prompt('add or modify user element', type=click.Choice(['add', 'modify'], case_sensitive=False))
+            if user_option == 'add':
+                with open (self.loaded_sheet, 'r') as f:
+                    existing_data = json.load(f)
+                    key_to_add = click.prompt('what to add to user space (Only use if you know what you\'re doing)', type=click.STRING)
+                    existing_data['usr'][key_to_add] = []
+                with open (self.loaded_sheet, 'w+') as outfile:
+                    json.dump(existing_data, outfile, indent=4)
+                self.console.print(f'[bold green] UPDATED {self.char_name} [/bold green]')
+            elif user_option == 'modify':
+                with open (self.loaded_sheet, 'r') as f:
+                    existing_data = json.load(f)
+                    values = existing_data['usr'].keys()
+                    attr_to_update = click.prompt('what to update (Only use if you know what you\'re doing)', type=click.Choice(values, case_sensitive=False))
+                    value_to_add = click.prompt('what value should we add', type=click.STRING)
+                    existing_data['usr'][attr_to_update].append(value_to_add)
+                with open (self.loaded_sheet, 'w+') as outfile:
+                    json.dump(existing_data, outfile, indent=4)
+                self.console.print(f'[bold green] UPDATED {self.char_name} [/bold green]')
+            else:
+                self.console.print('enter valid option')
+        if modify_option == 'maxhp':
+            maxhp = click.prompt('new max hp?', type=int)
+            self.max_hp = maxhp
+        if modify_option == 'skill':
+            skill_list = []
+            for skill in self.skill_list:
+                skill_list.append(skill.name)
+            skill_to_modify = click.prompt('what skill?', type=click.Choice(skill_list, case_sensitive=False))
+            for skill in self.skill_list:
+                if skill.name == skill_to_modify:
+                    skill_option = click.prompt(f'current skill rank is {skill.rank}, bonus is {skill.bonus}, for a total of {skill.total}. change rank or bonus?', type=click.Choice(['rank', 'bonus'], case_sensitive=False))
+                    if skill_option == 'rank':
+                        new_rank = click.prompt('what is the new skill rank?', type=int)
+                        skill.rank = new_rank
+                    if skill_option == 'bonus':
+                        new_bonus = click.prompt('what is the new skill bonus?', type=int)
+                        skill.bonus = new_bonus
+        if modify_option == 'attribute':
+            attr_list = []
+            for attr in self.attr_list:
+                attr_list.append(attr.name)
+            attr_to_modify = click.prompt('which attribute?', type=click.Choice(attr_list, case_sensitive=False))
+            for attr in self.attr_list:
+                if attr.name == attr_to_modify:
+                    attr_option = click.prompt(f'current attribute base is {attr.base}, bonus is {attr.bonus}, for a total of {attr.total}. change base or bonus?', type=click.Choice(['base', 'bonus'], case_sensitive=False))
+                    if attr_option == 'base':
+                        new_base = click.prompt('what is the new attribute base', type=int)
+                        attr.base = new_base
+                    if attr_option == 'bonus':
+                        new_bonus = click.prompt('what is the new attribute bonus', type=int)
+                        attr.bonus = new_bonus
+        self.update()
 
     def c_save(self, _):
         try: 
@@ -704,7 +739,7 @@ class TUI:
                                                     ))
 
         self.update()
-        self.console.print('Remember to add your HP!')
+        self.console.print('Remember to add your HP with the modify command')
 
 
 def get_options_from_dir(path):
