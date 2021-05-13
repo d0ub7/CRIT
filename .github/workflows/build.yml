@@ -1,0 +1,77 @@
+name: Binary builder
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  windows:
+    name: Windows
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.txt
+        pip install certifi
+        git clone https://github.com/pyinstaller/pyinstaller.git
+        cd pyinstaller
+        git checkout tags/v4.2
+        cd bootloader
+        python waf all
+        cd ..
+        pip install -e .
+    - name: Build binary
+      run: pyinstaller --additional-hooks-dir=Hooks/ -y -F -i CRIT.ico -n CRIT -c --noupx --exclude-module FixTk --exclude-module tcl --exclude-module tk --exclude-module _tkinter --exclude-module tkinter --exclude-module Tkinter CRIT.py
+    - name: Upload binary
+      uses: actions/upload-artifact@v1
+      with:
+        name: Windows
+        path: dist/CRIT.exe
+
+  linux:
+    name: Linux
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.txt
+        pip install certifi pyinstaller
+    - name: Build binary
+      run: pyinstaller --additional-hooks-dir=Hooks/ -y -F -n CRIT -c -s --noupx --exclude-module FixTk --exclude-module tcl --exclude-module tk --exclude-module _tkinter --exclude-module tkinter --exclude-module Tkinter CRIT.py
+    - name: Upload binary
+      uses: actions/upload-artifact@v1
+      with:
+        name: Linux
+        path: dist/CRIT
+
+  macos:
+    name: macOS
+    runs-on: macos-10.15
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --upgrade pip setuptools wheel
+        pip3 install -r requirements.txt
+        pip3 install certifi pyinstaller
+    - name: Build binary
+      run: pyinstaller --additional-hooks-dir=Hooks/ -y -F -n CRIT -c -s --noupx --exclude-module FixTk --exclude-module tcl --exclude-module tk --exclude-module _tkinter --exclude-module tkinter --exclude-module Tkinter CRIT.py
+    - name: Upload binary
+      uses: actions/upload-artifact@v1
+      with:
+        name: macOS
+        path: dist/CRIT
