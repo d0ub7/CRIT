@@ -756,3 +756,6 @@ def cli():
     click_completion.init()
     app = TUI()
     app.start()
+
+if __name__ == '__main__':
+    cli()
