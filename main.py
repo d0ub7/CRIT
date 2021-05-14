@@ -1,21 +1,20 @@
 import json
+import math
 import os
 import platform
 import sys
-import click
-import math
-from click.types import Choice
-import click_completion
-from string import Template
 from pathlib import Path
-from prompt_toolkit.shortcuts.prompt import prompt
-from recordclass import recordclass
+from string import Template
 
+import click
+import click_completion
+from click.types import Choice
 from prompt_toolkit import HTML, PromptSession
 from prompt_toolkit.completion import NestedCompleter, WordCompleter
 from prompt_toolkit.shortcuts import confirm
-from rich import box
-from rich import console
+from prompt_toolkit.shortcuts.prompt import prompt
+from recordclass import recordclass
+from rich import box, console
 from rich.console import Console, RenderGroup
 from rich.panel import Panel
 from rich.rule import Rule
@@ -25,7 +24,7 @@ from rich.traceback import Traceback, install
 
 from CRIT import HEADERS, __version__
 from CRIT.compat import (KBHit, clear, pause, set_terminal_size,
-                       set_terminal_title, timeout)
+                         set_terminal_title, timeout)
 
 if platform.system() == 'Windows':
     from ctypes import windll, wintypes
@@ -44,6 +43,8 @@ class TUI:
         self.attributes = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
         self.sizes = ['fine', 'diminutive', 'tiny', 'small', 'medium', 'large', 'huge', 'gargantuan', 'colossal']
         self.size_mods = [-8, -4, -2, -1, 0, 1, 2, 4, 8]
+        self.gear_slots = ['slotless', 'armor', 'belt', 'body', 'chest', 'eyes', 'feet', 'hands', 'head', 'headband', 'neck', 'ring1', 'ring2', 'shoulder', 'wrist', 'main_hand', 'off_hand']
+        self.bonus_types = ['armor', 'deflection', 'dodge', 'enhancement', 'natural', 'shield', 'size']
         self.os = platform.system()
         self.str_mod = 0
         self.dex_mod = 0
@@ -74,10 +75,14 @@ class TUI:
         self.acp_mod = 0
 
         #### COLLECTIONS
+        self.ac_obj                  = recordclass('ac', 'total, armor, shield, dex, dodge, size, natural, deflect, misc')
         self.spell_obj               = recordclass('tier', 'level, save, slots, remaining, base')
         self.attr_obj                = recordclass('attribute', 'name, total, bonus, base')
         self.skill_obj               = recordclass('skill', 'name, total, ability, rank, bonus, class_')
         self.save_obj                = recordclass('save', 'name, total, ability, bonus, base')
+        self.item_obj                = recordclass('item', 'name, equipped, slot, ac, acp, dex_mod, ac_type, attribute, save, skill')
+        self.weapon_obj              = recordclass('weapon', 'name, equipped, ddice, dtype, bonus')
+        self.item_list               = []
         self.spell_list              = []
         self.attr_list               = []
         self.skill_list              = []
@@ -136,8 +141,8 @@ class TUI:
             self.char_size = char_data['size']
             self.skills_type = char_data['skills_type']
             self.casting_stat = char_data['casting_stat'] if char_data['casting_stat'] else None
-            if 'feats' in char_data['usr']:
-                if 'agile maneuvers' in (feat.lower() for feat in char_data['usr']['feats']):
+            if char_data['feats']:
+                if 'agile maneuvers' in (feat.lower() for feat in char_data['feats']):
                     self.cmb_mod = 'dexterity'
 
             self.console.print('loading attributes')
@@ -147,6 +152,20 @@ class TUI:
                                                 , total = attr['total']
                                                 , bonus = attr['bonus']
                                                 , base = attr['base']))
+
+            self.console.print('loading items')
+
+            for name, item in char_data['items'].items():
+                self.item_list.append(self.item_obj(name = name
+                                                , equipped = item['equipped']
+                                                , slot = item['slot']
+                                                , ac = item['ac']
+                                                , acp = item['acp']
+                                                , dex_mod = item['dex_mod']
+                                                , ac_type = item['ac_type']
+                                                , attribute = item['attribute']
+                                                , save = item['save']
+                                                , skill = item['skill']))
 
             self.console.print('loading saves')
 
@@ -388,11 +407,7 @@ class TUI:
         char_name = click.prompt('What is the character\'s name', type=click.STRING)
 
         # Get Level
-        char_level = click.prompt('What level is the character?', type=int)
-        if char_level not in range(1,21):
-            self.console.print(f'[bold red]character levels outside of 1-20 not supported![/bold red]')
-            return()
-        
+        char_level = click.prompt('What level is the character?', type=click.IntRange(1,20))
 
         # Get Class
         self.console.print(('[bold blue]Supported Clases[/bold blue]'))
@@ -508,7 +523,8 @@ class TUI:
 
                     # create empty usr space
                     char_data['usr'] = {}
-                    char_data['usr']['feats'] = []
+                    # create empty feats space
+                    char_data['feats'] = []
 
                     really = True
                     if os.path.isfile(os.path.join(self.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_'))):
@@ -517,8 +533,11 @@ class TUI:
                         self.console.print(f'[bold red] NOT CREATING {char_name} [/bold red]')
                         return()
                     else:
-                        os.mkdir(os.path.join(self.sheets_path))
-                        with open(os.path.join(self.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_')), 'w') as outfile:
+                        try:
+                            os.mkdir(os.path.join(self.sheets_path))
+                        except:
+                            pass
+                        with open(os.path.join(self.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_')), 'w+') as outfile:
                             json.dump(char_data, outfile, indent=4)
                         self.console.print(f'[bold green] CREATED {char_name} [/bold green]')
                 except Exception as e:
@@ -539,7 +558,7 @@ class TUI:
             ,'level': None
         }))
 
-    #post load
+    # post load
     def c_heal(self, args):
         if not args:
             heal_value = click.prompt('How much did you heal?', type=int)
@@ -656,6 +675,23 @@ class TUI:
                     , 'base': save['base']
                 }
 
+            self.console.print('saving items')
+            char_data['items'] = {}
+            print(self.item_list)
+            for item in self.item_list:
+                char_data['items'][item['name']] = {
+                        'name': item['name']
+                        , 'equipped': str(item['equipped'])
+                        , 'slot': item['slot']
+                        , 'ac': item['ac']
+                        , 'acp': item['acp']
+                        , 'dex_mod': item['dex_mod']
+                        , 'ac_type': item['ac_type']
+                        , 'attribute': item['attribute']
+                        , 'save': item['save']
+                        , 'skill': item['skill']
+                }
+
             self.console.print('saving skills')
             char_data['skills'] = {}
             for skill in self.skill_list:
@@ -669,13 +705,14 @@ class TUI:
 
             self.console.print('saving spells')
             char_data['spells'] = {}
-            for spell in self.spell_list:
-                char_data['spells'][spell['level']] = {
-                    'save': spell['save']
-                    , 'slots': spell['slots']
-                    , 'remaining': spell['remaining']
-                    , 'base': spell['base']
-                }
+            if self.spell_list:
+                for spell in self.spell_list:
+                    char_data['spells'][spell['level']] = {
+                        'save': spell['save']
+                        , 'slots': spell['slots']
+                        , 'remaining': spell['remaining']
+                        , 'base': spell['base']
+                    }
 
 
             really = True
@@ -688,6 +725,7 @@ class TUI:
                 with open(os.path.join(self.sheets_path, f'CRIT{self.char_name}.json'.replace(' ', '_')), 'r+') as f:
                     existing_data = json.load(f)
                     char_data['usr'] = existing_data['usr']
+                    char_data['feats'] = existing_data['feats']
                 with open(os.path.join(self.sheets_path, f'CRIT{self.char_name}.json'.replace(' ', '_')), 'w') as outfile:
                     json.dump(char_data, outfile, indent=4)
                 self.console.print(f'[bold green] SAVED {self.char_name} [/bold green]')
@@ -696,26 +734,15 @@ class TUI:
             self.console.print(e)
             raise RuntimeError
 
-    def c_user(self, _):
-        self.print_loaded_header()
-        self.l_usr_output()
-
-    def c_main(self, _):
-        self.print_loaded_header()
-        self.l_main_output()
-
     def c_level(self, args):
         if not args:
-            char_level = click.prompt('What level are you going to?', type=int)
+            char_level = click.prompt('What level are you going to?', type=click.IntRange(1,20))
         else:
             try:
                 char_level = int(args)
             except:
                 self.console.print('please enter an int')
                 return()
-        if char_level not in range(1,21):
-            self.console.print(f'[bold red]character levels outside of 1-20 not supported![/bold red]')
-            return()
 
         self.char_level = char_level
         char_level = char_level-1
@@ -742,6 +769,79 @@ class TUI:
         self.update()
         self.console.print('Remember to add your HP with the modify command')
 
+    def c_item(self, args):
+        modify_option = click.prompt('modifiable elements:', type=click.Choice(['add', 'remove', 'equip', 'unequip'], case_sensitive=False))
+        if modify_option == 'add':
+            item_name = click.prompt('what is the item\'s name', type=str)
+            acp = 0
+            ac_type = None
+            dex_mod = 0
+            item_slots = []
+            item_slot = click.prompt('what slot is the item in?', type=click.Choice(self.gear_slots, case_sensitive=False))
+            if click.confirm('is there a second slot?'):
+                item_slot2 = click.prompt('what second slot is the item in?', type=click.Choice(self.gear_slots, case_sensitive=False))
+                if item_slot != item_slot2:
+                    item_slots.append(item_slot2)
+            item_slots.append(item_slot)
+            item_ac = click.prompt('how much ac does the item provide', type=int)
+            if item_ac != 0:
+                acp = click.prompt('what is the acp of the item?', type=click.IntRange(-9,0))
+                ac_type = click.prompt('what type of ac bonus?', type=click.Choice(self.bonus_types, case_sensitive=False))
+                dex_mod =  click.prompt('what is the dexterity modifier?', type=click.IntRange(0,9))
+            more = click.prompt('does the item modify anything else?', type=click.Choice(['attribute', 'save', 'skill', 'no'], case_sensitive=False))
+            item_attrs = []
+            item_saves = []
+            item_skills = []
+            while more != 'no':
+                if more == 'attribute':
+                    item_attr = click.prompt('what attribute does the item modify?', type=click.Choice(self.attributes, case_sensitive=False))
+                    item_attrs.append(item_attr)
+                if more == 'save':
+                    save_attr = click.prompt('what save does the item modify?', type=click.Choice(['fortitude', 'reflex', 'will'], case_sensitive=False))
+                    item_saves.append(save_attr)
+                if more == 'skill':
+                    skill_list = []
+                    for skill in self.skill_list:
+                        skill_list.append(skill.name)
+                    skill_attr = click.prompt('what skill does the item modify?', type=click.Choice(skill_list, case_sensitive=False))
+                    item_skills.append(skill_attr)
+                more = click.prompt('does the item modify anything else?', type=click.Choice(['attribute', 'save', 'skill', 'no'], case_sensitive=False))
+            
+            self.item_list = []
+            with open (self.loaded_sheet, 'r+') as f:
+                existing_data = json.load(f)
+                if not 'items' in existing_data:
+                    existing_data['items'] = {} 
+                existing_data['items'][item_name] = {
+                    'name': item_name
+                    , 'equipped': False
+                    , 'slot': item_slots
+                    , 'ac': item_ac
+                    , 'acp': acp
+                    , 'dex_mod' : dex_mod
+                    , 'ac_type': ac_type
+                    , 'attribute': item_attrs
+                    , 'save': item_saves
+                    , 'skill': item_skills
+                }
+                for item in existing_data['items']:
+                    self.item_list.append(item)
+        self.update()
+            
+
+        pass
+
+    def c_feat(self, args):
+        pass
+
+    # outputs
+    def c_user(self, _):
+        self.print_loaded_header()
+        self.l_usr_output()
+
+    def c_main(self, _):
+        self.print_loaded_header()
+        self.l_main_output()
 
 def get_options_from_dir(path):
     # returns a click.Choice
