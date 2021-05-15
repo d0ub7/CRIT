@@ -58,9 +58,9 @@ class TUI:
 
         self.output_states = ['main', 'combat', 'output']
         self.last_output_state = ''
+        self.loaded_sheet = '' 
 
         #### CHARACTER
-        self.loaded_sheet = '' 
         self.hp = 0
         self.max_hp = 99
         self.char_name = None
@@ -71,8 +71,14 @@ class TUI:
         self.char_size = None
         self.size_mod = 0
         self.skills_type = None
+        self.bonus_spells = None
         self.cmb_mod = 'strength'
         self.acp_mod = 0
+        self.item_list = []
+        self.spell_list = []
+        self.attr_list = []
+        self.skill_list = []
+        self.save_list = []
 
         #### COLLECTIONS
         self.ac_obj                  = recordclass('ac', 'total, armor, shield, dex, dodge, size, natural, deflect, misc')
@@ -80,14 +86,8 @@ class TUI:
         self.attr_obj                = recordclass('attribute', 'name, total, bonus, base')
         self.skill_obj               = recordclass('skill', 'name, total, ability, rank, bonus, class_')
         self.save_obj                = recordclass('save', 'name, total, ability, bonus, base')
-        self.item_obj                = recordclass('item', 'name, equipped, slot, ac, acp, dex_mod, ac_type, attribute, save, skill')
+        self.item_obj                = recordclass('item', 'name, equipped, slot, ac, acp, dex_mod, ac_type, bonus')
         self.weapon_obj              = recordclass('weapon', 'name, equipped, ddice, dtype, bonus')
-        self.item_list               = []
-        self.spell_list              = []
-        self.attr_list               = []
-        self.skill_list              = []
-        self.save_list               = []
-        self.bonus_spells            = None
 
     def start(self):
         self.startup_console()
@@ -154,7 +154,6 @@ class TUI:
                                                 , base = attr['base']))
 
             self.console.print('loading items')
-
             for name, item in char_data['items'].items():
                 self.item_list.append(self.item_obj(name = name
                                                 , equipped = item['equipped']
@@ -163,9 +162,7 @@ class TUI:
                                                 , acp = item['acp']
                                                 , dex_mod = item['dex_mod']
                                                 , ac_type = item['ac_type']
-                                                , attribute = item['attribute']
-                                                , save = item['save']
-                                                , skill = item['skill']))
+                                                , bonus = item['bonus']))
 
             self.console.print('loading saves')
 
@@ -224,11 +221,11 @@ class TUI:
     def mod(self, stat):
         return math.floor(((stat-10)/2))
 
-####  _                 _          _
-####  | | ___   __ _  __| | ___  __| |
-####  | |/ _ \ / _` |/ _` |/ _ \/ _` |
-####  | | (_) | (_| | (_| |  __/ (_| |
-####  |_|\___/ \__,_|\__,_|\___|\__,_|
+    ####  _                 _          _
+    ####  | | ___   __ _  __| | ___  __| |
+    ####  | |/ _ \ / _` |/ _` |/ _ \/ _` |
+    ####  | | (_) | (_| | (_| |  __/ (_| |
+    ####  |_|\___/ \__,_|\__,_|\___|\__,_|
 
     def get_modifiers(self):
         self.str_mod = self.mod(self.attr_list[0].total)
@@ -391,11 +388,11 @@ class TUI:
         self.console.print(grid)
         self.last_output_state = 'usr'
 
-####                                                 _
-####    ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___
-####   / __/ _ \| '_ ` _ \| '_ ` _ \ / _` | '_ \ / _` / __|
-####  | (_| (_) | | | | | | | | | | | (_| | | | | (_| \__ \
-####   \___\___/|_| |_| |_|_| |_| |_|\__,_|_| |_|\__,_|___/
+    ####                                                 _
+    ####    ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___
+    ####   / __/ _ \| '_ ` _ \| '_ ` _ \ / _` | '_ \ / _` / __|
+    ####  | (_| (_) | | | | | | | | | | | (_| | | | | (_| \__ \
+    ####   \___\___/|_| |_| |_|_| |_| |_|\__,_|_| |_|\__,_|___/
 
     # pre load
     def c_exit(self, _):
@@ -521,6 +518,8 @@ class TUI:
                             , 'base': class_config['spells'][spell_level][char_level-1]
                         }
 
+                    # create empty item space
+                    char_data['items'] = {}
                     # create empty usr space
                     char_data['usr'] = {}
                     # create empty feats space
@@ -545,6 +544,8 @@ class TUI:
                     raise RuntimeError
 
     def c_load(self, _):
+        if self.first_update == False:
+            return()
         sheet_to_load = click.prompt('which sheet should we load', type=get_options_from_dir(self.sheets_path))
         self.load(os.path.join(self.sheets_path, f'CRIT{sheet_to_load}.json'.replace(' ', '_')))
         self.update()
@@ -677,19 +678,16 @@ class TUI:
 
             self.console.print('saving items')
             char_data['items'] = {}
-            print(self.item_list)
             for item in self.item_list:
                 char_data['items'][item['name']] = {
                         'name': item['name']
-                        , 'equipped': str(item['equipped'])
+                        , 'equipped': item['equipped']
                         , 'slot': item['slot']
                         , 'ac': item['ac']
                         , 'acp': item['acp']
                         , 'dex_mod': item['dex_mod']
                         , 'ac_type': item['ac_type']
-                        , 'attribute': item['attribute']
-                        , 'save': item['save']
-                        , 'skill': item['skill']
+                        , 'bonus': item['bonus']
                 }
 
             self.console.print('saving skills')
@@ -770,7 +768,10 @@ class TUI:
         self.console.print('Remember to add your HP with the modify command')
 
     def c_item(self, args):
-        modify_option = click.prompt('modifiable elements:', type=click.Choice(['add', 'remove', 'equip', 'unequip'], case_sensitive=False))
+        modify_option = click.prompt('', type=click.Choice(['list', 'add', 'remove', 'equip', 'unequip'], case_sensitive=False))
+        if modify_option == 'list':
+            for item in self.item_list:
+                self.console.print(item)
         if modify_option == 'add':
             item_name = click.prompt('what is the item\'s name', type=str)
             acp = 0
@@ -789,47 +790,104 @@ class TUI:
                 ac_type = click.prompt('what type of ac bonus?', type=click.Choice(self.bonus_types, case_sensitive=False))
                 dex_mod =  click.prompt('what is the dexterity modifier?', type=click.IntRange(0,9))
             more = click.prompt('does the item modify anything else?', type=click.Choice(['attribute', 'save', 'skill', 'no'], case_sensitive=False))
-            item_attrs = []
-            item_saves = []
-            item_skills = []
+            bonus = []
             while more != 'no':
                 if more == 'attribute':
-                    item_attr = click.prompt('what attribute does the item modify?', type=click.Choice(self.attributes, case_sensitive=False))
-                    item_attrs.append(item_attr)
+                    item_attr = click.prompt(f'what {more} does the item modify?', type=click.Choice(self.attributes, case_sensitive=False))
+                    
                 if more == 'save':
-                    save_attr = click.prompt('what save does the item modify?', type=click.Choice(['fortitude', 'reflex', 'will'], case_sensitive=False))
-                    item_saves.append(save_attr)
+                    item_attr = click.prompt('what save does the item modify?', type=click.Choice(['fortitude', 'reflex', 'will'], case_sensitive=False))
                 if more == 'skill':
                     skill_list = []
                     for skill in self.skill_list:
                         skill_list.append(skill.name)
-                    skill_attr = click.prompt('what skill does the item modify?', type=click.Choice(skill_list, case_sensitive=False))
-                    item_skills.append(skill_attr)
+                    item_attr = click.prompt('what skill does the item modify?', type=click.Choice(skill_list, case_sensitive=False))
+                item_attr_value = click.prompt(f'how much?', type=click.IntRange(-99,99))
+                bonus.append([item_attr, item_attr_value])
                 more = click.prompt('does the item modify anything else?', type=click.Choice(['attribute', 'save', 'skill', 'no'], case_sensitive=False))
-            
-            self.item_list = []
-            with open (self.loaded_sheet, 'r+') as f:
-                existing_data = json.load(f)
-                if not 'items' in existing_data:
-                    existing_data['items'] = {} 
-                existing_data['items'][item_name] = {
-                    'name': item_name
-                    , 'equipped': False
-                    , 'slot': item_slots
-                    , 'ac': item_ac
-                    , 'acp': acp
-                    , 'dex_mod' : dex_mod
-                    , 'ac_type': ac_type
-                    , 'attribute': item_attrs
-                    , 'save': item_saves
-                    , 'skill': item_skills
-                }
-                for item in existing_data['items']:
-                    self.item_list.append(item)
-        self.update()
-            
 
-        pass
+            new_item = self.item_obj(name = item_name
+                                    , equipped = False
+                                    , slot = item_slots
+                                    , ac = item_ac
+                                    , acp = acp
+                                    , dex_mod = dex_mod
+                                    , ac_type = ac_type
+                                    , bonus = bonus)
+            if click.confirm(f'create {new_item}?'):
+                self.item_list.append(new_item)
+        if modify_option == 'remove':
+            item_list = []
+            for item in self.item_list:
+                item_list.append(item.name)
+            
+            item_to_remove = click.prompt('remove which item', type=click.Choice(item_list, case_sensitive=False))
+
+            for item in self.item_list:
+                if item.name == item_to_remove:
+                    self.console.print(f'removing {item_to_remove}')
+                    self.item_list.remove(item)
+        if modify_option == 'equip':
+            item_list = []
+            for item in self.item_list:
+                if item.equipped == False:
+                    item_list.append(item.name)
+
+            if item_list == []:
+                self.console.print('no items to equip')
+                return()
+            
+            item_to_equip_name = click.prompt('equip which item?', type=click.Choice(item_list, case_sensitive=False))
+            item_to_equip = {}
+            for item in self.item_list:
+                if item.name == item_to_equip_name:
+                    item_to_equip = item
+
+            equipped_items = []
+            for item in self.item_list:
+                if item.equipped == True:
+                    equipped_items.append(item)
+            
+            if (type(item_to_equip.slot) is str):
+                for item in equipped_items:
+                    if (type(item.slot) is str):
+                        if item_to_equip.slot == item.slot:
+                            self.console.print(f'unequip {item} first')
+                            return()
+                    if (type(item.slot) is list):
+                        for slot in item.slot:
+                            if item_to_equip.slot == slot:
+                                self.console.print(f'unequip {item} first')
+                                return()
+            if (type(item_to_equip.slot) is list):
+                for item in equipped_items:
+                    if (type(item.slot) is str):
+                        if item.slot in item_to_equip.slot:
+                            self.console.print(f'unequip {item} first')
+                            return()
+                    if (type(item.slot) is list):
+                        for slot in item.slot:
+                            if slot in item_to_equip.slot:
+                                self.console.print(f'unequip {item} first')
+                                return()
+            
+            for item in self.item_list:
+                if item.name == item_to_equip.name:
+                    item.equipped = True
+        if modify_option == 'unequip':
+            item_list = []
+            for item in self.item_list:
+                if item.equipped == True:
+                    item_list.append(item.name)
+            
+            if item_list == []:
+                self.console.print('no items to unequip')
+                return()
+
+            item_to_unequip_name = click.prompt('unequip which item?', type=click.Choice(item_list, case_sensitive=False))
+            for item in self.item_list:
+                if item.name == item_to_unequip_name:
+                    item.equipped = False
 
     def c_feat(self, args):
         pass
