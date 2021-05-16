@@ -4,27 +4,21 @@ import os
 import platform
 import sys
 from pathlib import Path
-from string import Template
 
 import click
 import click_completion
-from click.types import Choice
 from prompt_toolkit import HTML, PromptSession
-from prompt_toolkit.completion import NestedCompleter, WordCompleter
-from prompt_toolkit.shortcuts import confirm
-from prompt_toolkit.shortcuts.prompt import prompt
+from prompt_toolkit.completion import NestedCompleter
 from recordclass import recordclass
-from rich import box, console
-from rich.console import Console, RenderGroup
+from rich import box
+from rich.console import Console
 from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
-from rich.text import Text
-from rich.traceback import Traceback, install
 
 from CRIT import HEADERS, __version__
-from CRIT.compat import (KBHit, clear, pause, set_terminal_size,
-                         set_terminal_title, timeout)
+from CRIT.compat import (clear, pause, set_terminal_size,
+                         set_terminal_title)
 
 if platform.system() == 'Windows':
     from ctypes import windll, wintypes
@@ -44,7 +38,7 @@ class TUI:
         self.sizes = ['fine', 'diminutive', 'tiny', 'small', 'medium', 'large', 'huge', 'gargantuan', 'colossal']
         self.size_mods = [-8, -4, -2, -1, 0, 1, 2, 4, 8]
         self.gear_slots = ['slotless', 'armor', 'belt', 'body', 'chest', 'eyes', 'feet', 'hands', 'head', 'headband', 'neck', 'ring1', 'ring2', 'shoulder', 'wrist', 'main_hand', 'off_hand']
-        self.bonus_types = ['armor', 'deflection', 'dodge', 'enhancement', 'natural', 'shield', 'size']
+        self.bonus_types = ['armor', 'deflection', 'dodge', 'enhancement', 'natural', 'shield', 'size', 'resistance']
         self.os = platform.system()
         self.str_mod = 0
         self.dex_mod = 0
@@ -55,9 +49,6 @@ class TUI:
         self.casting_stat = None
         self.casting_mod = None
         self.first_update = True
-
-        self.output_states = ['main', 'combat', 'output']
-        self.last_output_state = ''
         self.loaded_sheet = '' 
 
         #### CHARACTER
@@ -83,11 +74,12 @@ class TUI:
         #### COLLECTIONS
         self.ac_obj                  = recordclass('ac', 'total, armor, shield, dex, dodge, size, natural, deflect, misc')
         self.spell_obj               = recordclass('tier', 'level, save, slots, remaining, base')
-        self.attr_obj                = recordclass('attribute', 'name, total, bonus, base')
-        self.skill_obj               = recordclass('skill', 'name, total, ability, rank, bonus, class_')
-        self.save_obj                = recordclass('save', 'name, total, ability, bonus, base')
+        self.attr_obj                = recordclass('attribute', 'name, total, bonus, base, item')
+        self.skill_obj               = recordclass('skill', 'name, total, ability, rank, bonus, class_, item')
+        self.save_obj                = recordclass('save', 'name, total, ability, bonus, base, item')
         self.item_obj                = recordclass('item', 'name, equipped, slot, ac, acp, dex_mod, ac_type, bonus')
         self.weapon_obj              = recordclass('weapon', 'name, equipped, ddice, dtype, bonus')
+        self.buff_obj                = recordclass('buff', 'stat, type, value')
 
     def start(self):
         self.startup_console()
@@ -151,7 +143,8 @@ class TUI:
                 self.attr_list.append(self.attr_obj(name = name
                                                 , total = attr['total']
                                                 , bonus = attr['bonus']
-                                                , base = attr['base']))
+                                                , base = attr['base']
+                                                , item = 0))
 
             self.console.print('loading items')
             for name, item in char_data['items'].items():
@@ -171,7 +164,8 @@ class TUI:
                                                 , total = sav['total']
                                                 , ability = sav['ability']
                                                 , bonus = sav['bonus']
-                                                , base = sav['base']))
+                                                , base = sav['base']
+                                                , item = 0))
 
             self.console.print('loading skills')
 
@@ -181,7 +175,8 @@ class TUI:
                                                 , ability = skill['ability']
                                                 , rank = skill['rank']
                                                 , bonus = skill['bonus']
-                                                , class_ = skill['class_']))
+                                                , class_ = skill['class_']
+                                                , item = 0))
 
             self.console.print('loading spells')
 
@@ -238,16 +233,58 @@ class TUI:
             if self.sizes[i] == self.char_size:
                 self.size_mod = self.size_mods[i]
 
+    def get_equipped_item_buffs(self):
+        unique_item_buffs = []
+        item_buffs = []
+        for item in self.item_list:
+            if item.equipped is True:
+                for bonus in item.bonus:
+                    item_buffs.append(self.buff_obj(
+                                    stat = item.bonus[bonus]['stat']
+                                    , type = item.bonus[bonus]['type']
+                                    , value = item.bonus[bonus]['value']
+                                    ))
+        buffdict = {}
+        for item in item_buffs:
+            if item.stat + item.type in buffdict.keys():
+                if item.value > buffdict[f'{item.stat}_{item.type}']:
+                    buffdict[f'{item.stat}_{item.type}'] = item.value
+                else:
+                    pass
+            else:
+                buffdict[f'{item.stat}_{item.type}'] = item.value
+        for buff, value in buffdict.items():
+            unique_item_buffs.append(self.buff_obj(stat = buff.split('_')[0]
+                                , type = buff.split('_')[1]
+                                , value = value
+                                ))
+        self.console.print(unique_item_buffs)
+        return unique_item_buffs
+
     def update(self):
+        # items
+        item_buffs = self.get_equipped_item_buffs()
+
         self.console.print('updating attributes')
         for attr in self.attr_list:
-            attr.total = attr.base + attr.bonus
+            attr.item = 0
+            for buff in item_buffs:
+                if buff.stat == attr.name:
+                    attr.item += buff.value
+            attr.total = attr.base + attr.bonus + attr.item
 
         self.console.print('updating modifiers')
         self.get_modifiers()
-        self.save_list[0].total = self.save_list[0].base + self.con_mod + self.save_list[0].bonus
-        self.save_list[1].total = self.save_list[1].base + self.dex_mod + self.save_list[1].bonus
-        self.save_list[2].total = self.save_list[2].base + self.wis_mod + self.save_list[2].bonus
+
+        self.console.print('updating saves')
+        for save in self.save_list:
+            save.item = 0
+            for buff in item_buffs:
+                if buff.stat == save.name:
+                    save.item += buff.value
+        self.save_list[0].total = self.save_list[0].base + self.con_mod + self.save_list[0].bonus + self.save_list[0].item
+        self.save_list[1].total = self.save_list[1].base + self.dex_mod + self.save_list[1].bonus + self.save_list[1].item
+        self.save_list[2].total = self.save_list[2].base + self.wis_mod + self.save_list[2].bonus + self.save_list[2].item
 
         self.console.print('updating cmb/cmd')
         if self.cmb_mod == 'strength':
@@ -259,6 +296,10 @@ class TUI:
         self.console.print('updating skills')
         # update skills
         for skill in self.skill_list:
+            skill.item = 0
+            for buff in item_buffs:
+                if buff.stat == skill.name:
+                    skill.item += buff.value
             skill.total = 0
             if skill.rank > 0:
                 skill.total += skill.rank
@@ -644,7 +685,7 @@ class TUI:
                         attr.bonus = new_bonus
         self.update()
 
-    def c_save(self, _):
+    def c_save(self, args):
         try: 
             char_data = {}
             char_data['name'] = self.char_name
@@ -790,20 +831,22 @@ class TUI:
                 ac_type = click.prompt('what type of ac bonus?', type=click.Choice(self.bonus_types, case_sensitive=False))
                 dex_mod =  click.prompt('what is the dexterity modifier?', type=click.IntRange(0,9))
             more = click.prompt('does the item modify anything else?', type=click.Choice(['attribute', 'save', 'skill', 'no'], case_sensitive=False))
-            bonus = []
+            bonus = {}
             while more != 'no':
                 if more == 'attribute':
                     item_attr = click.prompt(f'what {more} does the item modify?', type=click.Choice(self.attributes, case_sensitive=False))
-                    
                 if more == 'save':
-                    item_attr = click.prompt('what save does the item modify?', type=click.Choice(['fortitude', 'reflex', 'will'], case_sensitive=False))
+                    item_attr = click.prompt(f'what {more} does the item modify?', type=click.Choice(['fortitude', 'reflex', 'will'], case_sensitive=False))
                 if more == 'skill':
                     skill_list = []
                     for skill in self.skill_list:
                         skill_list.append(skill.name)
-                    item_attr = click.prompt('what skill does the item modify?', type=click.Choice(skill_list, case_sensitive=False))
+                    item_attr = click.prompt(f'what {more} does the item modify?', type=click.Choice(skill_list, case_sensitive=False))
                 item_attr_value = click.prompt(f'how much?', type=click.IntRange(-99,99))
-                bonus.append([item_attr, item_attr_value])
+                item_attr_type = click.prompt('what type of bonus', type=click.Choice(self.bonus_types, case_sensitive=False))
+                bonus[item_attr] = {'stat': item_attr
+                                , 'value':  item_attr_value
+                                , 'type': item_attr_type}
                 more = click.prompt('does the item modify anything else?', type=click.Choice(['attribute', 'save', 'skill', 'no'], case_sensitive=False))
 
             new_item = self.item_obj(name = item_name
