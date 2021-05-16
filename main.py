@@ -1,8 +1,4 @@
-from CRIT import json_parser
-from CRIT import character
-from CRIT.json_parser import JsonParser
 import json
-import math
 import os
 import platform
 import sys
@@ -18,10 +14,10 @@ from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
 
-from CRIT import HEADERS, __version__
+from CRIT import HEADERS, __version__, character, json_parser
 from CRIT.attribute import Attribute
 from CRIT.character import Character
-from CRIT.compat import (clear, pause, set_terminal_size, set_terminal_title)
+from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
 from CRIT.config import Config
 from CRIT.enums import Enums
 from CRIT.item import Item
@@ -30,6 +26,7 @@ from CRIT.mod import Mod
 from CRIT.save import Save
 from CRIT.skill import Skill
 from CRIT.spell import Spell
+from CRIT.utils import Utils
 
 if platform.system() == 'Windows':
     from ctypes import windll, wintypes
@@ -95,25 +92,12 @@ class TUI:
             self.console = Console()
 
     def print_header(self):
-        clear()
+        #clear()
         self.console.print(Rule(f'[bold green]Character Resources In Terminal[/bold green] [bold red]v{__version__}[/bold red]'))
         self.console.print('')
     
     def setup_completer(self, dict):
         self.completer = NestedCompleter.from_nested_dict(dict)
-
-    def get_number_output(self, number):
-        if number == 1:
-            return('1st')
-        elif number == 2:
-            return('2nd')
-        elif number == 3:
-            return('3rd')
-        else:
-            return(f'{number}th')
-
-    def get_mod(self, stat):
-        return math.floor(((stat-10)/2))
 
     ####  _                 _          _
     ####  | | ___   __ _  __| | ___  __| |
@@ -121,139 +105,59 @@ class TUI:
     ####  | | (_) | (_| | (_| |  __/ (_| |
     ####  |_|\___/ \__,_|\__,_|\___|\__,_|
 
-    def get_modifiers(self):
-        self.character.str_mod = self.get_mod(self.character.attr_list[0].total)
-        self.character.dex_mod = self.get_mod(self.character.attr_list[1].total)
-        self.character.con_mod = self.get_mod(self.character.attr_list[2].total)
-        self.character.int_mod = self.get_mod(self.character.attr_list[3].total)
-        self.character.wis_mod = self.get_mod(self.character.attr_list[4].total)
-        self.character.cha_mod = self.get_mod(self.character.attr_list[5].total)
-        for i in range(len(Enums.sizes)):
-            if Enums.sizes[i] == self.character.char_size:
-                self.character.size_mod = Enums.size_mods[i]
-
-    def get_equipped_item_buffs(self):
-        unique_item_buffs = []
-        item_buffs = []
-        for item in self.character.item_list:
-            if item.equipped is True:
-                for bonus in item.bonus:
-                    item_buffs.append(Mod(
-                                    stat = item.bonus[bonus]['stat']
-                                    , type_ = item.bonus[bonus]['type']
-                                    , value = item.bonus[bonus]['value']
-                                    ))
-        buffdict = {}
-        for item in item_buffs:
-            if item.stat + item.type_ in buffdict.keys():
-                if item.value > buffdict[f'{item.stat}_{item.type}']:
-                    buffdict[f'{item.stat}_{item.type_}'] = item.value
-                else:
-                    pass
-            else:
-                buffdict[f'{item.stat}_{item.type_}'] = item.value
-        for buff, value in buffdict.items():
-            unique_item_buffs.append(Mod(stat = buff.split('_')[0]
-                                , type_ = buff.split('_')[1]
-                                , value = value
-                                ))
-        return unique_item_buffs
-
     def update(self):
         # items
-        item_buffs = self.get_equipped_item_buffs()
+        self.console.print('get item buffs')
+        item_buffs = Item.get_unique_item_buffs(self.character)
 
         self.console.print('updating Attributes')
-        for attr in self.character.attr_list:
-            attr.item = 0
-            for buff in item_buffs:
-                if buff.stat == attr.name:
-                    attr.item += buff.value
-            attr.total = attr.base + attr.bonus + attr.item
-
+        Attribute.update(self.character, item_buffs)
+            
         self.console.print('updating modifiers')
-        self.get_modifiers()
+        for i in range(len(Enums.sizes)):
+            if Enums.sizes[i] == self.character.size:
+                self.character.size_mod = Enums.size_mods[i]
+        
+        self.console.print('updating AC')
+        ac_buffs = Item.get_unique_ac_buffs(self.character)
+        total_buff_ac = 0
+        for buff in ac_buffs:
+            self.character.dex_mod = buff.dex_mod if self.character.dex_mod < buff.dex_mod else self.character.dex_mod  
+            self.character.acp = buff.acp if self.character.acp > buff.acp else self.character.acp
+            total_buff_ac += buff.ac
+
+        self.character.ac = 10 - self.character.size_mod + self.character.dex_mod + total_buff_ac
 
         self.console.print('updating saves')
-        for save in self.character.save_list:
-            save.item = 0
-            for buff in item_buffs:
-                if buff.stat == save.name:
-                    save.item += buff.value
-        self.character.save_list[0].total = self.character.save_list[0].base + self.character.con_mod + self.character.save_list[0].bonus + self.character.save_list[0].item
-        self.character.save_list[1].total = self.character.save_list[1].base + self.character.dex_mod + self.character.save_list[1].bonus + self.character.save_list[1].item
-        self.character.save_list[2].total = self.character.save_list[2].base + self.character.wis_mod + self.character.save_list[2].bonus + self.character.save_list[2].item
+        Save.update(self.character, item_buffs)
 
-        self.console.print('updating cmb/cmd')
+        # update bab/cmb/cmd
         if self.character.cmb_mod == 'strength':
-            self.character.char_cmb = self.character.char_bab + self.character.str_mod + self.character.size_mod
+            self.character.cmb = self.character.bab + self.character.strength.mod + self.character.size_mod
         if self.character.cmb_mod == 'dexterity':
-            self.character.char_cmb = self.character.char_bab + self.character.dex_mod + self.character.size_mod
-        self.character.char_cmd = 10 + self.character.char_bab + self.character.str_mod + self.character.dex_mod + self.character.size_mod
+            self.character.cmb = self.character.bab + self.character.dexterity.mod + self.character.size_mod
+        self.character.cmd = 10 + self.character.bab + self.character.strength.mod + self.character.dexterity.mod + self.character.size_mod
 
         self.console.print('updating skills')
-        # update skills
-        for skill in self.character.skill_list:
-            skill.item = 0
-            for buff in item_buffs:
-                if buff.stat == skill.name:
-                    skill.item += buff.value
-            skill.total = 0
-            if skill.rank > 0:
-                skill.total += skill.rank
-                if skill.class_:
-                    skill.total += 3
-
-            if skill.ability == 'strength':
-                skill.total += self.character.str_mod
-            if skill.ability == 'dexterity':
-                skill.total += self.character.dex_mod
-            if skill.ability == 'constitution':
-                skill.total += self.character.con_mod
-            if skill.ability == 'intelligence':
-                skill.total += self.character.int_mod
-            if skill.ability == 'wisdom':
-                skill.total += self.character.wis_mod
-            if skill.ability == 'charisma':
-                skill.total += self.character.cha_mod
-            
-            skill.total += skill.bonus
-            skill.total += skill.item
+        Skill.update(self.character, item_buffs)
 
         self.console.print('updating casting mod')
-        # get casting mod
         if self.character.casting_stat == 'intelligence':
-            self.character.casting_mod = self.character.int_mod
+            self.character.casting_mod = self.character.intelligence.mod
         elif self.character.casting_stat == 'wisdom':
-            self.character.casting_mod = self.character.wis_mod
+            self.character.casting_mod = self.character.wisdom.mod
         elif self.character.casting_stat == 'charisma':
-            self.character.casting_mod = self.character.cha_mod
+            self.character.casting_mod = self.character.charisma.mod
         else:
-            pass
+            self.character.casting_mod = None
 
-        # get bonus spell data
-        with open(Path(Config.data_path, 'spells', 'bonus.json'), 'r') as f:
-            bonus_spells = json.load(f)
+        if self.character.casting_stat:
+            # get bonus spell data
+            with open(Path(Config.data_path, 'spells', 'bonus.json'), 'r') as f:
+                bonus_spells = json.load(f)
 
-        self.console.print('updating spells')
-        # Spell stuff
-        self.console.print(f'casting mod: {self.character.casting_mod}')
-        current_casting_mod = 16 if self.character.casting_mod > 16 else self.character.casting_mod
-        if self.character.casting_mod == None or self.character.casting_mod < 0:
-            self.character.spell_list = None
-            self.console.print(Rule('[bold red]UNABLE TO CAST SPELLS[/bold red]'))
-        elif self.character.casting_mod == 0:
-            # no bonus spells
-            for spel in self.character.spell_list:
-                if spel.base != 0:
-                    spel.save = 10 + spel.level
-                    spel.slots = spel.base
-        else:
-            # get bonus spells
-            for spel in self.character.spell_list:
-                if spel.base != 0:
-                    spel.save = 10 + spel.level + current_casting_mod
-                    spel.slots = bonus_spells[str(current_casting_mod)][spel.level-1] + spel.base
+            self.console.print('updating spells')
+            Spell.update(self.character, bonus_spells)
         self.post_update()
 
     def post_update(self):
@@ -261,8 +165,8 @@ class TUI:
         self.l_main_output()
 
     def print_loaded_header(self):
-        clear()
-        self.console.print(Rule(f'[bold red]{self.character.char_name}[/bold red] the [bold green]{self.get_number_output(self.character.char_level)}[/bold green] level [bold blue]{self.character.char_class}[/bold blue]'))
+        #clear()
+        self.console.print(Rule(f'[bold red]{self.character.name}[/bold red] the [bold green]{Utils.get_number_output(self.character.level)}[/bold green] level [bold blue]{self.character.class_}[/bold blue]'))
 
     def l_main_output(self):
         attr_table = Table(box=box.ROUNDED, title='ATTRIBUTES')
@@ -271,15 +175,16 @@ class TUI:
         panel_grid = Table.grid()
         panel_grid.add_column(f"", justify='center',style='white',no_wrap=True)
         panel_grid.add_row(Panel.fit(f'[red]{self.character.hp}[/red]/{self.character.max_hp}',title='HP'),
-                            Panel.fit(f'{self.character.char_bab}', title='BAB'), 
-                            Panel.fit(f'{self.character.char_cmb}', title='CMB'), 
-                            Panel.fit(f'{self.character.char_cmd}', title='CMD'))
+                            Panel.fit(f'{self.character.bab}', title='BAB'), 
+                            Panel.fit(f'{self.character.cmb}', title='CMB'), 
+                            Panel.fit(f'{self.character.cmd}', title='CMD'),
+                            Panel.fit(f'{self.character.ac}', title='AC'))
 
         attr_table.add_column(f"Attribute", justify='center', style='bright_red', no_wrap=True)
         attr_table.add_column(f"Value", justify='center', style='cyan', no_wrap=True)
         attr_table.add_column(f"Mod", justify='center', style='green', no_wrap=True)
         for attr in self.character.attr_list:
-            attr_table.add_row(f"{attr.name}", f"{attr.total}", f"{self.get_mod(attr.total)}")
+            attr_table.add_row(f"{attr.name}", f"{attr.total}", f"{Utils.get_mod(attr.total)}")
 
         save_table.add_column(f"Save", justify='center', style='bright_red', no_wrap=True)
         save_table.add_column(f"Value", justify='center', style='cyan', no_wrap=True)
@@ -307,12 +212,6 @@ class TUI:
         self.console.print(grid)
         self.last_output_state = 'main'
 
-    def l_combat_output(self):
-        pass
-
-    def l_downtime_output(self):
-        pass
-
     def l_usr_output(self):
         with open (self.loaded_sheet, 'r') as f:
             existing_data = json.load(f)
@@ -338,154 +237,19 @@ class TUI:
             sys.exit(0)
 
     def c_create(self, _):
-        # Get Name
-        char_name = click.prompt('What is the character\'s name', type=click.STRING)
-
-        # Get Level
-        char_level = click.prompt('What level is the character?', type=click.IntRange(1,20))
-
-        # Get Class
-        self.console.print(('[bold blue]Supported Clases[/bold blue]'))
-        char_class = click.prompt('What is the character\'s class', type=get_options_from_dir(Path(Config.data_path, 'classes')))
-        if not os.path.isfile(Path(Config.data_path, 'classes', f'{char_class}.json')):
-            self.console.print(f'[bold red]{char_class} class unsupported. Create it yourself![/bold red]')
-            return()
-
-        # Get Attributes
-        self.console.print(Rule(f'[bold blue]What are the characters base attributes?,[/bold blue]'))
-
-        char_str = click.prompt('What is the character\'s strength', type=int)
-        char_dex = click.prompt('What is the character\'s dexterity', type=int)
-        char_con = click.prompt('What is the character\'s constitution', type=int)
-        char_int = click.prompt('What is the character\'s intelligence', type=int)
-        char_wis = click.prompt('What is the character\'s wisdom', type=int)
-        char_cha = click.prompt('What is the character\'s charisma', type=int)
-        char_hp =  click.prompt('What is the character\'s maximum HP', type=int)
-
-        char_size = click.prompt('What size are you?', type=click.Choice(Enums.sizes))
-        # Get Skills
-        skills_type = click.prompt('What skills should we use? (leave blank for default)', type=get_options_from_dir(Path(Config.data_path, 'skills')), default='default')
-        if not os.path.isfile(Path(Config.data_path, 'skills', f'{skills_type}.json')):
-            self.console.print(f'[bold red]{skills_type} skills unsupported. Create it yourself![/bold red]')
-            return()
-        self.console.print(f'[bold red]{char_name}[/bold red] the [bold green]{self.get_number_output(char_level)}[/bold green] level [bold blue]{char_class}[/bold blue]')
-        char_table = Table(box=box.ROUNDED)
-
-        char_table.add_column("Attribute", justify='center', style='cyan', no_wrap=True)
-        char_table.add_column("Value",     justify='center', style='green')
-        char_table.add_row('Strength',     f'{char_str}')
-        char_table.add_row('Dexterity',    f'{char_dex}')
-        char_table.add_row('Constitution', f'{char_con}')
-        char_table.add_row('Intelligence', f'{char_int}')
-        char_table.add_row('Wisdom',       f'{char_wis}')
-        char_table.add_row('Charisma',     f'{char_cha}')
-
-        self.console.print(char_table)
-
-        # Generate Character
-        if click.confirm(f'Should we create {char_name}?'):
-            with open(Path(Config.data_path, 'classes', f'{char_class}.json'), 'r') as f:
-                try: 
-                    class_config = json.load(f)
-                    char_data = {}
-                    char_data['name'] = char_name
-                    char_data['class'] = char_class
-                    char_data['level'] = char_level
-                    char_data['hp'] = char_data['max_hp'] = char_hp
-                    char_data['bab'] = class_config['bab'][char_level-1]
-                    char_data['casting_stat'] = class_config['casting_stat']
-                    char_data['size'] = char_size
-
-                    # Attributes
-                    char_attr_list = [char_str, char_dex, char_con, char_int, char_wis, char_cha]
-                    char_data['attributes'] = {}
-                    for i in range(len(Enums.attributes)):
-                        char_data['attributes'][Enums.attributes[i]] = {
-                            'total': 0
-                            , 'base': char_attr_list[i]
-                            , 'bonus': 0
-                            }
-
-                    # saves
-                    char_data['saves'] = {}
-                    char_data['saves']['fortitude'] = {
-                        'total': 0
-                        , 'ability': 'constitution'
-                        , 'bonus': 0
-                        , 'base': class_config['fortitude'][char_level-1]
-                    }
-                    char_data['saves']['reflex'] = {
-                        'total': 0
-                        , 'ability': 'dexterity'
-                        , 'bonus': 0
-                        , 'base': class_config['reflex'][char_level-1]
-                    }
-                    char_data['saves']['will'] = {
-                        'total': 0
-                        , 'ability': 'wisdom'
-                        , 'bonus': 0
-                        , 'base': class_config['will'][char_level-1]
-                    }
-
-                    # We get skills here because it takes a json load and we want to verify other steps before getting here
-                    # also do here because we need this prompt and it's easier here
-                    char_data['skills'] = {}
-                    if os.path.isfile(Path(Config.data_path, 'skills', f'{skills_type}.json')):
-                        self.console.print(Rule('[bold blue]Setting up skills[/bold blue]'))
-                        with open(Path(Config.data_path, 'skills', f'{skills_type}.json')) as f:
-                            skills_config = json.load(f)
-                            char_data['skills_type'] = skills_type
-                            for skil in skills_config['skills']:
-                                temp_ = click.prompt(f'How many ranks do you have in {skil}?'.replace('_', ' '))
-                                class_ = True if skil in class_config['class_skills'] else False
-                                char_data['skills'][skil] = {
-                                    'total': 0
-                                    , 'ability': skills_config['skills'][skil]
-                                    , 'rank': int(temp_)
-                                    , 'bonus': 0
-                                    , 'class_': class_
-                                }
-
-                    # spells
-                    char_data['spells'] = {}
-                    for spell_level in class_config['spells']:
-                        char_data['spells'][int(spell_level)] = {
-                            'save': 0 # set this on load
-                            , 'slots': class_config['spells'][spell_level][char_level-1]
-                            , 'remaining': class_config['spells'][spell_level][char_level-1]
-                            , 'base': class_config['spells'][spell_level][char_level-1]
-                        }
-
-                    # create empty item space
-                    char_data['items'] = {}
-                    # create empty usr space
-                    char_data['usr'] = {}
-                    # create empty feats space
-                    char_data['feats'] = []
-
-                    really = True
-                    if os.path.isfile(Path(Config.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_'))):
-                        really = click.confirm(f'sheet for {char_name} exists, overwrite?')
-                    if not really:
-                        self.console.print(f'[bold red] NOT CREATING {char_name} [/bold red]')
-                        return()
-                    else:
-                        try:
-                            os.mkdir(Path(Config.sheets_path))
-                        except:
-                            pass
-                        with open(Path(Config.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_')), 'w+') as outfile:
-                            json.dump(char_data, outfile, indent=4)
-                        self.console.print(f'[bold green] CREATED {char_name} [/bold green]')
-                except Exception as e:
-                    self.console.print(e)
-                    raise RuntimeError
+        Utils.character_creator(self.console)
 
     def c_load(self, _):
         if self.first_update == False:
             return()
-        sheet_to_load = click.prompt('which sheet should we load', type=get_options_from_dir(Config.sheets_path))
+        sheet_to_load = click.prompt('which sheet should we load', type=Utils.get_options_from_dir(Config.sheets_path))
+        self.console.print('get character')
         self.character = JsonParser.load_character(Path(Config.sheets_path, f'CRIT{sheet_to_load}.json'.replace(' ', '_')))
+        self.console.print('setup attributes')
+        Attribute.setup(self.character)
+        self.console.print('setup saves')
+        Save.setup(self.character)
+        self.console.print('update')
         self.update()
         self.first_update = False
         self.setup_completer(({
@@ -536,7 +300,7 @@ class TUI:
                     existing_data['usr'][key_to_add] = []
                 with open (self.loaded_sheet, 'w+') as outfile:
                     json.dump(existing_data, outfile, indent=4)
-                self.console.print(f'[bold green] UPDATED {self.character.char_name} [/bold green]')
+                self.console.print(f'[bold green] UPDATED {self.character.name} [/bold green]')
             elif user_option == 'modify':
                 with open (self.loaded_sheet, 'r') as f:
                     existing_data = json.load(f)
@@ -546,7 +310,7 @@ class TUI:
                     existing_data['usr'][attr_to_update].append(value_to_add)
                 with open (self.loaded_sheet, 'w+') as outfile:
                     json.dump(existing_data, outfile, indent=4)
-                self.console.print(f'[bold green] UPDATED {self.character.char_name} [/bold green]')
+                self.console.print(f'[bold green] UPDATED {self.character.name} [/bold green]')
             else:
                 self.console.print('enter valid option')
         if modify_option == 'maxhp':
@@ -595,11 +359,11 @@ class TUI:
                 self.console.print('please enter an int')
                 return()
 
-        self.character.char_level = char_level
+        self.character.level = char_level
         char_level = char_level-1
-        with open(Path(Config.data_path, 'classes', f'{self.character.char_class}.json'), 'r') as f:
+        with open(Path(Config.data_path, 'classes', f'{self.character.class_}.json'), 'r') as f:
             class_config = json.load(f)
-            self.character.char_bab = class_config['bab'][char_level]
+            self.character.bab = class_config['bab'][char_level]
             # up saves
             for sav in self.character.save_list:
                 sav.base = class_config[sav.name][char_level]
@@ -757,18 +521,13 @@ class TUI:
         self.print_loaded_header()
         self.l_main_output()
 
-def get_options_from_dir(path):
-    # returns a click.Choice
-    _list = []
-    for elem in os.listdir(path):
-        _list.append(elem.removesuffix('.json').removeprefix('CRIT'))
-    return(click.Choice(_list, case_sensitive=False))
+
 
 @click.command()
 def cli():
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
     click_completion.init()
-    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    # os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
 

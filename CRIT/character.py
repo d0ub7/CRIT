@@ -1,32 +1,42 @@
+from CRIT.attribute import Attribute
 class Character:
     def __init__(self) -> None:
         #### CHARACTER
         self.hp = 0
         self.max_hp = 99
-        self.char_name = None
-        self.char_class = None
-        self.char_bab = 0
-        self.char_cmb = 0
-        self.char_cmd = 0
-        self.char_size = None
+        self.name = None
+        self.class_ = None
+        self.bab = 0
+        self.cmb = 0
+        self.cmd = 0
+        self.size = None
         self.size_mod = 0
         self.skills_type = None
         self.bonus_spells = None
         self.cmb_mod = 'strength'
-        self.acp_mod = 0
+
+        self.ac = 0
+        self.acp = 0
+        self.dex_mod = 0
+
 
         self.casting_stat = None
         self.casting_mod = None
-        self.str_mod = 0
-        self.dex_mod = 0
-        self.con_mod = 0
-        self.int_mod = 0
-        self.wis_mod = 0
-        self.cha_mod = 0
+
+        self.strength = None
+        self.dexterity = None
+        self.constitution = None
+        self.intelligence = None
+        self.wisdom = None
+        self.charisma = None
+
+        self.fortitude = None
+        self.dexterity = None
+        self.will = None
 
         self.item_list = []
         self.spell_list = []
         self.attr_list = []
         self.skill_list = []
         self.save_list = []
-
+    

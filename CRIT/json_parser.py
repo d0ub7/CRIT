@@ -1,3 +1,4 @@
+from CRIT.enums import Enums
 import json
 import click
 import os
@@ -20,11 +21,11 @@ class JsonParser:
             character = Character()
             character.hp = char_data['hp']
             character.max_hp = char_data['max_hp']
-            character.char_name = char_data['name']
-            character.char_class = char_data['class']
-            character.char_level = char_data['level']
-            character.char_bab = char_data['bab']
-            character.char_size = char_data['size']
+            character.name = char_data['name']
+            character.class_ = char_data['class']
+            character.level = char_data['level']
+            character.bab = char_data['bab']
+            character.size = char_data['size']
             character.skills_type = char_data['skills_type']
             character.casting_stat = char_data['casting_stat'] if char_data['casting_stat'] else None
             
@@ -37,7 +38,8 @@ class JsonParser:
                                                 , total = attr['total']
                                                 , bonus = attr['bonus']
                                                 , base = attr['base']
-                                                , item = 0))
+                                                , item = 0
+                                                , mod = 0))
 
             for name, itm in char_data['items'].items():
                 character.item_list.append(Item(name = name
@@ -74,20 +76,20 @@ class JsonParser:
                                                 , remaining = spel['remaining']
                                                 , base = spel['base']))
 
-            return character
+        return character
 
     @staticmethod
     def save_character(character):
         try: 
             char_data = {}
-            char_data['name'] = character.char_name
-            char_data['class'] = character.char_class
-            char_data['level'] = character.char_level
+            char_data['name'] = character.name
+            char_data['class'] = character.class_
+            char_data['level'] = character.level
             char_data['hp'] = character.hp
             char_data['max_hp'] = character.max_hp
-            char_data['bab'] = character.char_bab
+            char_data['bab'] = character.bab
             char_data['casting_stat'] = character.casting_stat
-            char_data['size'] = character.char_size
+            char_data['size'] = character.size
             char_data['skills_type'] = character.skills_type
 
             char_data['attributes'] = {}
@@ -140,10 +142,10 @@ class JsonParser:
                         , 'base': spell.base
                     }
 
-            char_file = PurePath(f'{Config.sheets_path}', f'CRIT{character.char_name}.json'.replace(' ', '_'))
+            char_file = PurePath(f'{Config.sheets_path}', f'CRIT{character.name}.json'.replace(' ', '_'))
             really = True
             if os.path.isfile(char_file):
-                really = click.confirm(f'sheet for {character.char_name} exists, overwrite?')
+                really = click.confirm(f'sheet for {character.name} exists, overwrite?')
             if not really:
                 return()
             else:
