@@ -8,21 +8,19 @@ import click
 import click_completion
 from prompt_toolkit import HTML, PromptSession
 from prompt_toolkit.completion import NestedCompleter
-from rich import box
+from rich import box, panel
 from rich.console import Console
 from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
 
-from CRIT import HEADERS, __version__, character, json_parser
+from CRIT import HEADERS, __version__, character
 from CRIT.attribute import Attribute
-from CRIT.character import Character
 from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
 from CRIT.config import Config
 from CRIT.enums import Enums
 from CRIT.item import Item
 from CRIT.json_parser import JsonParser
-from CRIT.mod import Mod
 from CRIT.save import Save
 from CRIT.skill import Skill
 from CRIT.spell import Spell
@@ -121,12 +119,24 @@ class TUI:
         self.console.print('updating AC')
         ac_buffs = Item.get_unique_ac_buffs(self.character)
         total_buff_ac = 0
+        total_buff_touch_ac = 0
+        total_buff_ff_ac = 0
         for buff in ac_buffs:
-            self.character.dex_mod = buff.dex_mod if self.character.dex_mod < buff.dex_mod else self.character.dex_mod  
+            if buff.type_ in Enums.touchac_types:
+                total_buff_touch_ac += buff.ac
+            if buff.type_ in Enums.ffac_types:
+                total_buff_ff_ac += buff.ac
+            if buff.dex_mod != -1:
+                self.character.dex_mod = buff.dex_mod if self.character.dex_mod > buff.dex_mod else self.character.dex_mod
             self.character.acp = buff.acp if self.character.acp > buff.acp else self.character.acp
             total_buff_ac += buff.ac
+        
 
-        self.character.ac = 10 - self.character.size_mod + self.character.dex_mod + total_buff_ac
+        dex_to_ac = self.character.dexterity.mod if self.character.dex_mod > self.character.dexterity.mod else self.character.dex_mod
+        print(dex_to_ac)
+        self.character.ac = 10 - self.character.size_mod + dex_to_ac + total_buff_ac
+        self.character.ffac = 10 - self.character.size_mod + total_buff_ff_ac
+        self.character.touchac = 10 - self.character.size_mod + dex_to_ac + total_buff_touch_ac
 
         self.console.print('updating saves')
         Save.update(self.character, item_buffs)
@@ -177,8 +187,12 @@ class TUI:
         panel_grid.add_row(Panel.fit(f'[red]{self.character.hp}[/red]/{self.character.max_hp}',title='HP'),
                             Panel.fit(f'{self.character.bab}', title='BAB'), 
                             Panel.fit(f'{self.character.cmb}', title='CMB'), 
-                            Panel.fit(f'{self.character.cmd}', title='CMD'),
-                            Panel.fit(f'{self.character.ac}', title='AC'))
+                            Panel.fit(f'{self.character.cmd}', title='CMD')
+        )
+        panel_grid.add_row(Panel.fit(f'{self.character.ac}', title='AC'),
+                            Panel.fit(f'{self.character.touchac}', title='Touch AC'),
+                            Panel.fit(f'{self.character.ffac}', title='FF AC')
+        )
 
         attr_table.add_column(f"Attribute", justify='center', style='bright_red', no_wrap=True)
         attr_table.add_column(f"Value", justify='center', style='cyan', no_wrap=True)
@@ -405,7 +419,7 @@ class TUI:
             if item_ac != 0:
                 acp = click.prompt('what is the acp of the item?', type=click.IntRange(-9,0))
                 ac_type = click.prompt('what type of ac bonus?', type=click.Choice(Enums.bonus_types, case_sensitive=False))
-                dex_mod =  click.prompt('what is the dexterity modifier?', type=click.IntRange(0,9))
+                dex_mod =  click.prompt('what is the max dex bonus (-1 for unlimited or N/A)?', type=click.IntRange(-1,9))
             more = click.prompt('does the item modify anything else?', type=click.Choice(['attribute', 'save', 'skill', 'no'], case_sensitive=False))
             bonus = {}
             while more != 'no':
@@ -461,34 +475,37 @@ class TUI:
             for item in self.character.item_list:
                 if item.name == item_to_equip_name:
                     item_to_equip = item
-
-            equipped_items = []
-            for item in self.character.item_list:
-                if item.equipped == True:
-                    equipped_items.append(item)
             
-            if (type(item_to_equip.slot) is str):
-                for item in equipped_items:
-                    if (type(item.slot) is str):
-                        if item_to_equip.slot == item.slot:
-                            self.console.print(f'unequip {item} first')
-                            return()
-                    if (type(item.slot) is list):
-                        for slot in item.slot:
-                            if item_to_equip.slot == slot:
+            if 'slotless' in item_to_equip.slot:
+                pass
+            else:
+                equipped_items = []
+                for item in self.character.item_list:
+                    if item.equipped == True:
+                        equipped_items.append(item)
+                
+                if (type(item_to_equip.slot) is str):
+                    for item in equipped_items:
+                        if (type(item.slot) is str):
+                            if item_to_equip.slot == item.slot:
                                 self.console.print(f'unequip {item} first')
                                 return()
-            if (type(item_to_equip.slot) is list):
-                for item in equipped_items:
-                    if (type(item.slot) is str):
-                        if item.slot in item_to_equip.slot:
-                            self.console.print(f'unequip {item} first')
-                            return()
-                    if (type(item.slot) is list):
-                        for slot in item.slot:
-                            if slot in item_to_equip.slot:
+                        if (type(item.slot) is list):
+                            for slot in item.slot:
+                                if item_to_equip.slot == slot:
+                                    self.console.print(f'unequip {item} first')
+                                    return()
+                if (type(item_to_equip.slot) is list):
+                    for item in equipped_items:
+                        if (type(item.slot) is str):
+                            if item.slot in item_to_equip.slot:
                                 self.console.print(f'unequip {item} first')
                                 return()
+                        if (type(item.slot) is list):
+                            for slot in item.slot:
+                                if slot in item_to_equip.slot:
+                                    self.console.print(f'unequip {item} first')
+                                    return()
             
             for item in self.character.item_list:
                 if item.name == item_to_equip.name:
@@ -527,7 +544,7 @@ class TUI:
 def cli():
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
     click_completion.init()
-    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    # os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
 

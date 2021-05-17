@@ -16,8 +16,10 @@ class Character:
         self.cmb_mod = 'strength'
 
         self.ac = 0
+        self.ffac = 0
+        self.touchac = 0
         self.acp = 0
-        self.dex_mod = 0
+        self.dex_mod = 99
 
 
         self.casting_stat = None
