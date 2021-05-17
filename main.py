@@ -394,7 +394,7 @@ class TUI:
 def cli():
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
     click_completion.init()
-    # os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
 
