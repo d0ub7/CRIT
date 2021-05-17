@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 import click_completion
 from prompt_toolkit import HTML, PromptSession
-from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit.completion import NestedCompleter, WordCompleter
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
@@ -34,7 +34,6 @@ class TUI:
         self.table = None
         self.tipsDatabase = None
         self.completer = None
-        self.loadedCompleter = None
         self.os = platform.system()
         self.first_update = True
         self.loaded_sheet = '' 
@@ -244,16 +243,21 @@ class TUI:
         self.console.print('setup saves')
         CharUtils.setup_saves(self.character)
         self.console.print('update')
-        self.update()
-        self.first_update = False
         self.setup_completer(({
-            'modify': None
+            'heal': None
+            ,'harm': None
+            ,'cast': None
+            ,'modify': WordCompleter(['user', 'maxhp', 'skill', 'attribute'])
             ,'save': None
+            ,'item': WordCompleter(['list', 'add', 'remove', 'equip', 'unequip'])
             ,'exit': None
             ,'user': None
             ,'main': None
             ,'level': None
         }))
+        self.update()
+        self.first_update = False
+        
 
     # post load
     def c_cast(self, args):
