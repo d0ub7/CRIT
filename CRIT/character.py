@@ -1,4 +1,3 @@
-from CRIT.attribute import Attribute
 class Character:
     def __init__(self) -> None:
         #### CHARACTER

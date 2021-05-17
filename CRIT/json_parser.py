@@ -1,4 +1,3 @@
-from CRIT.enums import Enums
 import json
 import click
 import os

@@ -8,7 +8,7 @@ import click
 import click_completion
 from prompt_toolkit import HTML, PromptSession
 from prompt_toolkit.completion import NestedCompleter
-from rich import box, panel
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.rule import Rule
@@ -16,13 +16,13 @@ from rich.table import Table
 
 from CRIT import HEADERS, __version__, character
 from CRIT.attribute import Attribute
+from CRIT.charutils import CharUtils
 from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
 from CRIT.config import Config
 from CRIT.enums import Enums
 from CRIT.item import Item
 from CRIT.json_parser import JsonParser
 from CRIT.save import Save
-from CRIT.skill import Skill
 from CRIT.spell import Spell
 from CRIT.utils import Utils
 
@@ -106,10 +106,10 @@ class TUI:
     def update(self):
         # items
         self.console.print('get item buffs')
-        item_buffs = Item.get_unique_item_buffs(self.character)
+        item_buffs = CharUtils.get_unique_item_buffs(self.character)
 
         self.console.print('updating Attributes')
-        Attribute.update(self.character, item_buffs)
+        CharUtils.update_attributes(self.character, item_buffs)
             
         self.console.print('updating modifiers')
         for i in range(len(Enums.sizes)):
@@ -117,29 +117,10 @@ class TUI:
                 self.character.size_mod = Enums.size_mods[i]
         
         self.console.print('updating AC')
-        ac_buffs = Item.get_unique_ac_buffs(self.character)
-        total_buff_ac = 0
-        total_buff_touch_ac = 0
-        total_buff_ff_ac = 0
-        for buff in ac_buffs:
-            if buff.type_ in Enums.touchac_types:
-                total_buff_touch_ac += buff.ac
-            if buff.type_ in Enums.ffac_types:
-                total_buff_ff_ac += buff.ac
-            if buff.dex_mod != -1:
-                self.character.dex_mod = buff.dex_mod if self.character.dex_mod > buff.dex_mod else self.character.dex_mod
-            self.character.acp = buff.acp if self.character.acp > buff.acp else self.character.acp
-            total_buff_ac += buff.ac
-        
-
-        dex_to_ac = self.character.dexterity.mod if self.character.dex_mod > self.character.dexterity.mod else self.character.dex_mod
-        print(dex_to_ac)
-        self.character.ac = 10 - self.character.size_mod + dex_to_ac + total_buff_ac
-        self.character.ffac = 10 - self.character.size_mod + total_buff_ff_ac
-        self.character.touchac = 10 - self.character.size_mod + dex_to_ac + total_buff_touch_ac
+        CharUtils.update_ac(self.character)
 
         self.console.print('updating saves')
-        Save.update(self.character, item_buffs)
+        CharUtils.update_saves(self.character, item_buffs)
 
         # update bab/cmb/cmd
         if self.character.cmb_mod == 'strength':
@@ -149,7 +130,7 @@ class TUI:
         self.character.cmd = 10 + self.character.bab + self.character.strength.mod + self.character.dexterity.mod + self.character.size_mod
 
         self.console.print('updating skills')
-        Skill.update(self.character, item_buffs)
+        CharUtils.update_skills(self.character, item_buffs)
 
         self.console.print('updating casting mod')
         if self.character.casting_stat == 'intelligence':
@@ -167,7 +148,7 @@ class TUI:
                 bonus_spells = json.load(f)
 
             self.console.print('updating spells')
-            Spell.update(self.character, bonus_spells)
+            CharUtils.update_spells(self.character, bonus_spells)
         self.post_update()
 
     def post_update(self):
@@ -260,9 +241,9 @@ class TUI:
         self.console.print('get character')
         self.character = JsonParser.load_character(Path(Config.sheets_path, f'CRIT{sheet_to_load}.json'.replace(' ', '_')))
         self.console.print('setup attributes')
-        Attribute.setup(self.character)
+        CharUtils.setup_attributes(self.character)
         self.console.print('setup saves')
-        Save.setup(self.character)
+        CharUtils.setup_saves(self.character)
         self.console.print('update')
         self.update()
         self.first_update = False
@@ -544,7 +525,7 @@ class TUI:
 def cli():
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
     click_completion.init()
-    # os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
 
