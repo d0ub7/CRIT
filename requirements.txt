@@ -1,7 +1,3 @@
 prompt_toolkit
-rich>10
-lupa
+rich
 pathlib
-recordclass
-click
-click_completion
