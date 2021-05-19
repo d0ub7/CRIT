@@ -10,8 +10,9 @@ import sys
 from CRIT import commands
 import CRIT.commands.harm
 def load_commands(character, session, console):
-    short_name = mod_name.split('.')[2]
     for mod_name in _iter_namespace(commands):
+        short_name = mod_name.split('.')[2]
+
         # Ensure that module isn't already loaded
         if mod_name not in sys.modules:
             # Import module
