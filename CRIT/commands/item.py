@@ -61,32 +61,32 @@ Examples:
             ac_type = prompt('what type of ac bonus? > ', completer=WordCompleter(Enums.bonus_types), validator=WordValidator(Enums.bonus_types))
             # , type=clik.IntRange(-1,9)
             dex_list = ['-1','0','1','2','3','4','5','6','7','8','9']
-            dex_mod =  Utils.str2int(prompt('what is the max dex bonus (-1 for unlimited or N/A)? > ', completer=WordCompleter(dex_list), validator=WordCompleter(dex_list)))
+            dex_mod =  Utils.str2int(prompt('what is the max dex bonus (-1 for unlimited or N/A)? > ', completer=WordCompleter(dex_list), validator=WordValidator(dex_list)))
         mod_list = ['attribute', 'save', 'skill', 'no']
-        more = prompt('does the item modify anything else?', completer=WordCompleter(mod_list), validator=WordValidator(mod_list))
+        more = prompt('does the item modify anything else? > ', completer=WordCompleter(mod_list), validator=WordValidator(mod_list))
         bonus = {}
         while more != 'no':
             if more == 'attribute':
-                item_attr = prompt(f'what {more} does the item modify?', completer=WordCompleter(Enums.attributes), validator=WordValidator(Enums.attributes))
+                item_attr = prompt(f'what {more} does the item modify? > ', completer=WordCompleter(Enums.attributes), validator=WordValidator(Enums.attributes))
             if more == 'save':
                 sav_list = ['fortitude', 'reflex', 'will']
-                item_attr = prompt(f'what {more} does the item modify?', completer=WordCompleter(sav_list), validator=WordValidator(sav_list))
+                item_attr = prompt(f'what {more} does the item modify? > ', completer=WordCompleter(sav_list), validator=WordValidator(sav_list))
             if more == 'skill':
                 skill_list = []
                 for skill in character.skill_list:
                     skill_list.append(skill.name)
-                item_attr = Utils.str2int(prompt(f'what {more} does the item modify?', completer=WordCompleter(skill_list), validator=WordValidator(skill_list)))
+                item_attr = Utils.str2int(prompt(f'what {more} does the item modify? > ', completer=WordCompleter(skill_list), validator=WordValidator(skill_list)))
                 # , type=clik.IntRange(-99,99)
-                howmuch_list = []
-                for i in range(-99,99):
-                    howmuch_list.append(str(i))
-            item_attr_value = Utils.str2int(prompt(f'how much?', completer=WordCompleter(howmuch_list), validator=WordValidator(howmuch_list)))
+            howmuch_list = []
+            for i in range(-99,99):
+                howmuch_list.append(str(i))
+            item_attr_value = Utils.str2int(prompt(f'how much? > ', completer=WordCompleter(howmuch_list), validator=WordValidator(howmuch_list)))
             item_attr_type = prompt('what type of bonus > ', completer=WordCompleter(Enums.bonus_types), validator=WordValidator(Enums.bonus_types))
             bonus[item_attr] = {'stat': item_attr
                             , 'value':  item_attr_value
                             , 'type': item_attr_type}
             more_list = ['attribute', 'save', 'skill', 'no']
-            more = prompt('does the item modify anything else?', completer=WordCompleter(more_list), validator=WordValidator(more_list))
+            more = prompt('does the item modify anything else? > ', completer=WordCompleter(more_list), validator=WordValidator(more_list))
 
         new_item = models.Item(name = item_name
                     , equipped = False
