@@ -19,9 +19,7 @@ def load_commands(character, session, console):
 
             # Load class from imported module
             class_name = ''.join([x.title() for x in short_name.split('_')])
-            print(class_name)
             loaded_class = getattr(loaded_mod, class_name, None)
-            print(loaded_class)
             if not loaded_class:
                 continue
 
@@ -46,7 +44,6 @@ def _iter_namespace(nsp):
     # See https://github.com/pyinstaller/pyinstaller/issues/1905
     toc = set()  # table of content
     for importer in pkgutil.iter_importers(nsp.__name__.partition(".")[0]):
-        print(importer)
         if hasattr(importer, 'toc'):
             toc |= importer.toc
     for name in toc:

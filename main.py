@@ -121,7 +121,7 @@ class TUI:
             , 'load': None
             , 'help': None
         })
-        #clear()
+        clear()
         self.console.print(Rule(f'[bold green]Character Resources In Terminal[/bold green] [bold red]v{__version__}[/bold red]'))
         self.console.print('')
         try:
@@ -153,7 +153,7 @@ class TUI:
 
     def startup_console(self):
         if 'WINDIR' in os.environ and 'WT_SESSION' not in os.environ and 'ALACRITTY_LOG' not in os.environ:
-            set_terminal_size(200, 150)
+            set_terminal_size(150, 150)
             windll.kernel32.SetConsoleScreenBufferSize(windll.kernel32.GetStdHandle(-11), wintypes._COORD(100, 200))
             self.console = Console(width=200)
         else:
@@ -210,7 +210,7 @@ class TUI:
 
             self.console.print('updating spells')
             CharUtils.update_spells(self.character, bonus_spells)
-        #clear()
+        clear()
         self.console.print(Rule(f'[bold red]{self.character.name}[/bold red] the [bold green]{Utils.get_number_output(self.character.level)}[/bold green] level [bold blue]{self.character.class_}[/bold blue]'))
         self.character.changed = False
 
