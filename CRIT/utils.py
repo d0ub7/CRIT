@@ -1,6 +1,7 @@
 import math
 import os
 from pathlib import Path
+import toml
 import json
 
 from prompt_toolkit.completion.word_completer import WordCompleter
@@ -34,10 +35,9 @@ class Utils:
         
     @staticmethod
     def get_options_from_dir(path):
-        # returns a WordCompleter
         _list = []
         for elem in os.listdir(path):
-            _list.append(elem.removesuffix('.json').removeprefix('CRIT'))
+            _list.append(elem.removesuffix('.toml').removesuffix('.json').removeprefix('CRIT'))
         return(_list)
 
     @staticmethod
@@ -68,7 +68,7 @@ class Utils:
         char_size = prompt('What size are you? > ', completer=WordCompleter(Enums.sizes), validator=WordValidator(Enums.sizes))
         # Get Skills
         skills_list = Utils.get_options_from_dir(Path(Config.data_path, 'skills'))
-        skills_type = prompt('What skills should we use? > ', completer=WordCompleter(skills_list), validator=WordValidator(skills_list) , default='default')
+        skills_type = prompt('What skills should we use? > ', completer=WordCompleter(skills_list), validator=WordValidator(skills_list))
         if not os.path.isfile(Path(Config.data_path, 'skills', f'{skills_type}.json')):
             console.print(f'[bold red]{skills_type} skills unsupported. Create it yourself![/bold red]')
             return
@@ -140,7 +140,7 @@ class Utils:
                             skills_config = json.load(f)
                             char_data['skills_type'] = skills_type
                             for skil in skills_config['skills']:
-                                temp_ = prompt(f'How many ranks do you have in {skil}? > '.replace('_', ' '))
+                                temp_ = prompt(f'How many ranks do you have in {skil}? > '.replace('_', ' '), validator=NumberValidator())
                                 class_ = True if skil in class_config['class_skills'] else False
                                 char_data['skills'][skil] = {
                                     'total': 0
@@ -153,13 +153,13 @@ class Utils:
                     # spells
                     char_data['spells'] = {}
                     for spell_level in class_config['spells']:
-                        char_data['spells'][int(spell_level)] = {
+                        char_data['spells'][str(spell_level)] = {
                             'save': 0 # set this on load
                             , 'slots': class_config['spells'][spell_level][char_level-1]
                             , 'remaining': class_config['spells'][spell_level][char_level-1]
                             , 'base': class_config['spells'][spell_level][char_level-1]
                         }
-
+                    
                     # create empty item space
                     char_data['items'] = {}
                     # create empty usr space
@@ -168,7 +168,7 @@ class Utils:
                     char_data['feats'] = []
 
                     really = True
-                    if os.path.isfile(Path(Config.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_'))):
+                    if os.path.isfile(Path(Config.sheets_path, f'CRIT{char_name}.toml'.replace(' ', '_'))):
                         really = Utils.str2bool(prompt(f'sheet for {char_name} exists, overwrite? > '))
                     if not really:
                         console.print(f'[bold red] NOT CREATING {char_name} [/bold red]')
@@ -178,8 +178,8 @@ class Utils:
                             os.mkdir(Path(Config.sheets_path))
                         except:
                             pass
-                        with open(Path(Config.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_')), 'w+') as outfile:
-                            json.dump(char_data, outfile, indent=4)
+                        with open(Path(Config.sheets_path, f'CRIT{char_name}.toml'.replace(' ', '_')), 'w+') as outfile:
+                            toml.dump(char_data, outfile)
                         console.print(f'[bold green] CREATED {char_name} [/bold green]')
                 except Exception as e:
                     console.print(e)
@@ -196,7 +196,7 @@ class Utils:
     @staticmethod
     def user_output(character, console):
         with open (character.sheet, 'r') as f:
-            existing_data = json.load(f)
+            existing_data = toml.load(f)
             grid = Table.grid(expand=True)
             for key in existing_data['usr'].keys():
                 temp = Table(box=box.ROUNDED, title='')

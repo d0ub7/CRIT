@@ -71,9 +71,6 @@ class Item:
     equipped: False
     slot: None
     ac: None
-    acp: None
-    dex_mod: None
-    ac_type: None
     bonus: None
 
 @dataclass

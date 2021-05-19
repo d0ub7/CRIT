@@ -1,3 +1,4 @@
+from CRIT.toml_parser import TomlParser
 import json
 import os
 import platform
@@ -24,7 +25,7 @@ from CRIT.charutils import CharUtils
 from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
 from CRIT.config import Config
 from CRIT.enums import Enums
-from CRIT.json_parser import JsonParser
+from CRIT.toml_parser import TomlParser
 from CRIT.utils import Utils
 from CRIT.loader import load_commands
 from CRIT import commands
@@ -283,9 +284,9 @@ class TUI:
             return
         sheets_path = Utils.get_options_from_dir(Config.sheets_path)
         sheet_to_load = prompt('which sheet should we load? > ', completer=WordCompleter(sheets_path), validator=validator.WordValidator(sheets_path))
-        sheet_to_load = Path(Config.sheets_path, f'CRIT{sheet_to_load}.json'.replace(' ', '_'))
+        sheet_to_load = Path(Config.sheets_path, f'CRIT{sheet_to_load}.toml'.replace(' ', '_'))
         self.console.print('get character')
-        self.character = JsonParser.load_character(sheet_to_load)
+        self.character = TomlParser.load_character(sheet_to_load)
         self.character.sheet = sheet_to_load
         self.console.print('setup attributes')
         CharUtils.setup_attributes(self.character)
