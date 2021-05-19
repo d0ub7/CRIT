@@ -10,6 +10,7 @@ class Modify(Command):
 
     keywords = ['modify']
     help_text = '''{keyword}
+{divider}
 Summary: Change the character's items
 
 Usage: {keyword} <verb>
@@ -19,12 +20,11 @@ Examples:
     {keyword} maxhp
     {keyword} skill 
     {keyword} attribute
-    {keyword} user
 '''
 
     def do_command(self, *args): #TODO add proper args support
         if not args:
-            mod_list = ['user', 'maxhp', 'skill', 'attribute']
+            mod_list = ['maxhp', 'skill', 'attribute']
             modify_option = prompt('modify > ', completer=WordCompleter(mod_list), validator=WordValidator(mod_list))
         else:
             try:
@@ -48,7 +48,7 @@ Examples:
         for attr in character.attr_list:
             if attr.name == attr_to_modify:
                 opt_list = ['base', 'bonus']
-                attr_option = prompt(f'current attribute base is {attr.base}, bonus is {attr.bonus}, for a total of {attr.total}. change base or bonus?', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
+                attr_option = prompt(f'current attribute base is {attr.base}, bonus is {attr.bonus}, for a total of {attr.total}. change base or bonus? > ', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
                 if attr_option == 'base':
                     new_base = Utils.str2int(prompt('what is the new attribute base > ', validator=NumberValidator()))
                     attr.base = new_base
@@ -70,7 +70,7 @@ Examples:
         for skill in character.skill_list:
             if skill.name == skill_to_modify:
                 opt_list = ['rank', 'bonus']
-                skill_option = prompt(f'current skill rank is {skill.rank}, bonus is {skill.bonus}, for a total of {skill.total}. change rank or bonus?', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
+                skill_option = prompt(f'current skill rank is {skill.rank}, bonus is {skill.bonus}, for a total of {skill.total}. change rank or bonus? > ', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
                 if skill_option == 'rank':
                     new_rank = Utils.str2int(prompt('what is the new skill rank? > ', validator=NumberValidator()))
                     skill.rank = new_rank
@@ -80,8 +80,8 @@ Examples:
         self.character.changed = True
 
     def modify_user(self, character, console):
-        opt_list = ['add', 'modify']
-        user_option = prompt('add or modify user element', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
+        opt_list = ['add', 'modify', 'list']
+        user_option = prompt('add, modify, or list user element > ', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
         if user_option == 'add':
             with open (character.sheet, 'r') as f:
                 existing_data = json.load(f)
@@ -100,5 +100,7 @@ Examples:
             with open (character.sheet, 'w+') as outfile:
                 json.dump(existing_data, outfile, indent=4)
             console.print(f'[bold green] UPDATED {character.name} [/bold green]')
+        elif user_option == 'list':
+            Utils.user_output(character, console)
         else:
             console.print('enter valid option')

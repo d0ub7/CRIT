@@ -192,3 +192,16 @@ class Utils:
     @staticmethod
     def str2int(v):
         return int(v)
+
+    @staticmethod
+    def user_output(character, console):
+        with open (character.sheet, 'r') as f:
+            existing_data = json.load(f)
+            grid = Table.grid(expand=True)
+            for key in existing_data['usr'].keys():
+                temp = Table(box=box.ROUNDED, title='')
+                temp.add_column(key, justify='center',style='white',no_wrap=True)
+                for value in existing_data['usr'][key]:
+                    temp.add_row(value)
+                grid.add_row(temp)
+        console.print(grid)

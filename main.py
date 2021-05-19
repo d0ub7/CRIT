@@ -114,9 +114,10 @@ class TUI:
     def start(self):
         self.startup_console()
         self.completer = NestedCompleter.from_nested_dict({
-            'create': None,
-            'exit': None,
-            'load': None
+            'create': None
+            , 'exit': None
+            , 'load': None
+            , 'help': None
         })
         clear()
         self.console.print(Rule(f'[bold green]Character Resources In Terminal[/bold green] [bold red]v{__version__}[/bold red]'))
@@ -259,25 +260,15 @@ class TUI:
         self.console.print(grid)
         self.last_output_state = 'main'
 
-    def l_usr_output(self):
-        with open (self.character.sheet, 'r') as f:
-            existing_data = json.load(f)
-            grid = Table.grid(expand=True)
-            for key in existing_data['usr'].keys():
-                temp = Table(box=box.ROUNDED, title='')
-                temp.add_column(key, justify='center',style='white',no_wrap=True)
-                for value in existing_data['usr'][key]:
-                    temp.add_row(value)
-                grid.add_row(temp)
-        self.console.print(grid)
-        self.last_output_state = 'usr'
-
     ####    ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___
     ####   / __/ _ \| '_ ` _ \| '_ ` _ \ / _` | '_ \ / _` / __|
     ####  | (_| (_) | | | | | | | | | | | (_| | | | | (_| \__ \
     ####   \___\___/|_| |_| |_|_| |_| |_|\__,_|_| |_|\__,_|___/
 
     # pre load
+    def c_help(self, _):
+        self.console.print(f'[bold blue]Press tab to autocomplete options at any menu. you may create or load a sheet, options change after load.[/bold blue]')
+
     def c_exit(self, _):
         if Utils.str2bool(prompt('Are you sure you want to quit > ')):
             sys.exit(0)
