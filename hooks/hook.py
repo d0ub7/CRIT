@@ -1,2 +1,2 @@
 from PyInstaller.utils.hooks import collect_submodules
-hiddenimports = collect_submodules('CRIT')
+hiddenimports = collect_submodules('CRIT.commands')

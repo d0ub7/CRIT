@@ -19,7 +19,6 @@ from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
 
-from CRIT import (__name__ as CRIT_package, __path__ as CRIT_path)
 from CRIT import __version__, validator
 from CRIT.charutils import CharUtils
 from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
@@ -335,11 +334,8 @@ def load_commands(character, session, console):
     path = os.path.join(os.path.dirname(__file__), 'CRIT', 'commands')
     modules = pkgutil.iter_modules(path=[path])
 
-    prefix = CRIT_package + "."
-    modules = [m[1] for m in pkgutil.iter_modules(CRIT_path, prefix)]
-    for elm in _get_all_modules_pyinstaller():
-        if elm.startswith(prefix):
-            modules.append(elm)
+
+    _load_commands_pyinstaller('CRIT.commands')
 
     for loader, mod_name, ispkg in modules:
         # Ensure that module isn't already loaded
@@ -356,17 +352,23 @@ def load_commands(character, session, console):
             # Create an instance of the class
             instance = loaded_class(character, session, console)
 
-def _get_all_modules_pyinstaller():
-    # Special handling for PyInstaller
+def _load_commands_pyinstaller(ns_pkg):
+    prefix = ns_pkg.__name__ + "."
+    for p in pkgutil.iter_modules(ns_pkg.__path__, prefix):
+        yield p[1]
+
+    # special handling when the package is bundled with PyInstaller 3.5
+    # See https://github.com/pyinstaller/pyinstaller/issues/1905#issuecomment-445787510
     toc = set()
-    importers = pkgutil.iter_importers(__package__)
-    for i in importers:
-        if hasattr(i, 'toc'):
-            toc |= i.toc
-    return toc
+    for importer in pkgutil.iter_importers(ns_pkg.__name__.partition(".")[0]):
+        if hasattr(importer, 'toc'):
+            toc |= importer.toc
+    for name in toc:
+        if name.startswith(prefix):
+            yield name
 
 if __name__ == '__main__':
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
-    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    #os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
