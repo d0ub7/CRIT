@@ -46,7 +46,9 @@ def _iter_namespace(nsp):
     # See https://github.com/pyinstaller/pyinstaller/issues/1905
     toc = set()  # table of content
     for importer in pkgutil.iter_importers(nsp.__name__.partition(".")[0]):
+        print(importer)
         if hasattr(importer, 'toc'):
+            print('toc')
             toc |= importer.toc
     for name in toc:
         if name.startswith(prefix):
