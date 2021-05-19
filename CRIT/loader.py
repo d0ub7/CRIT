@@ -40,15 +40,14 @@ def _iter_namespace(nsp):
     # import_module to work without having to do additional modification to
     # the name.
     prefix = nsp.__name__ + "."
-    for pkg in pkgutil.iter_modules(nsp.__path__, prefix):
-        yield pkg[1]  # pkg is (finder, name, ispkg)
+    # for pkg in pkgutil.iter_modules(nsp.__path__, prefix):
+    #     yield pkg[1]  # pkg is (finder, name, ispkg)
     # special handling when the package is bundled with PyInstaller
     # See https://github.com/pyinstaller/pyinstaller/issues/1905
     toc = set()  # table of content
     for importer in pkgutil.iter_importers(nsp.__name__.partition(".")[0]):
         print(importer)
         if hasattr(importer, 'toc'):
-            print('toc')
             toc |= importer.toc
     for name in toc:
         if name.startswith(prefix):
