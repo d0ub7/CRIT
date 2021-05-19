@@ -25,7 +25,6 @@ def load_commands(character, session, console):
 
             # Create an instance of the class
             instance = loaded_class(character, session, console)
-            print(instance)
 
 def _iter_namespace(nsp):
     """
@@ -38,8 +37,8 @@ def _iter_namespace(nsp):
     # import_module to work without having to do additional modification to
     # the name.
     prefix = nsp.__name__ + "."
-    # for pkg in pkgutil.iter_modules(nsp.__path__, prefix):
-    #     yield pkg[1]  # pkg is (finder, name, ispkg)
+    for pkg in pkgutil.iter_modules(nsp.__path__, prefix):
+        yield pkg[1]  # pkg is (finder, name, ispkg)
     # special handling when the package is bundled with PyInstaller
     # See https://github.com/pyinstaller/pyinstaller/issues/1905
     toc = set()  # table of content

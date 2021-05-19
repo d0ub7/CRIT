@@ -54,14 +54,17 @@ Examples:
                 item_slots.append(item_slot2)
         item_slots.append(item_slot)
         item_ac = Utils.str2int(prompt('how much ac does the item provide > ', validator=NumberValidator()))
+        ac = {}
         if item_ac != 0:
-            # , type=clik.IntRange(-9,0)
             acp_list = ['0','-1','-2','-3','-4','-5','-6','-7','-8','-9']
             acp = Utils.str2int(prompt('what is the acp of the item? > ', completer=WordCompleter(acp_list), validator=WordValidator(acp_list)))
             ac_type = prompt('what type of ac bonus? > ', completer=WordCompleter(Enums.bonus_types), validator=WordValidator(Enums.bonus_types))
-            # , type=clik.IntRange(-1,9)
             dex_list = ['-1','0','1','2','3','4','5','6','7','8','9']
             dex_mod =  Utils.str2int(prompt('what is the max dex bonus (-1 for unlimited or N/A)? > ', completer=WordCompleter(dex_list), validator=WordValidator(dex_list)))
+            ac[ac_type] = {'ac': item_ac
+                        , 'acp': acp
+                        , 'dex_mod': dex_mod
+            }
         mod_list = ['attribute', 'save', 'skill', 'no']
         more = prompt('does the item modify anything else? > ', completer=WordCompleter(mod_list), validator=WordValidator(mod_list))
         bonus = {}
@@ -82,8 +85,7 @@ Examples:
                 howmuch_list.append(str(i))
             item_attr_value = Utils.str2int(prompt(f'how much? > ', completer=WordCompleter(howmuch_list), validator=WordValidator(howmuch_list)))
             item_attr_type = prompt('what type of bonus > ', completer=WordCompleter(Enums.bonus_types), validator=WordValidator(Enums.bonus_types))
-            bonus[item_attr] = {'stat': item_attr
-                            , 'value':  item_attr_value
+            bonus[item_attr] = {'value':  item_attr_value
                             , 'type': item_attr_type}
             more_list = ['attribute', 'save', 'skill', 'no']
             more = prompt('does the item modify anything else? > ', completer=WordCompleter(more_list), validator=WordValidator(more_list))
@@ -91,10 +93,7 @@ Examples:
         new_item = models.Item(name = item_name
                     , equipped = False
                     , slot = item_slots
-                    , ac = item_ac
-                    , acp = acp
-                    , dex_mod = dex_mod
-                    , ac_type = ac_type
+                    , ac = ac
                     , bonus = bonus
         )
         if Utils.str2bool(prompt(f'create {new_item}?')):

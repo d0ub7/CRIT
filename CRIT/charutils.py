@@ -9,11 +9,11 @@ class CharUtils:
         ac_buffs = []
         for item in character.item_list:
             if item.equipped is True:
-                if item.ac != 0:
-                    ac_buffs.append(Ac(ac = item.ac
-                                    , type_ = item.ac_type
-                                    , acp = item.acp
-                                    , dex_mod = item.dex_mod
+                for name, ac in item.ac.items():
+                    ac_buffs.append(Ac(ac = ac['ac']
+                                    , type_ = name
+                                    , acp = ac['acp']
+                                    , dex_mod = ac['dex_mod']
                     ))
         acdict = {}
         for buff in ac_buffs:
@@ -37,11 +37,11 @@ class CharUtils:
         item_buffs = []
         for item in character.item_list:
             if item.equipped is True:
-                for bonus in item.bonus:
+                for name, bonus in item.bonus.items():
                     item_buffs.append(Mod(
-                                    stat = item.bonus[bonus]['stat']
-                                    , type_ = item.bonus[bonus]['type']
-                                    , value = item.bonus[bonus]['value']
+                                    stat = name
+                                    , type_ = bonus['type']
+                                    , value = bonus['value']
                     ))
         buffdict = {}
         for buff in item_buffs:

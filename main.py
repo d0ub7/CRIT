@@ -1,3 +1,4 @@
+from CRIT.toml_parser import TomlParser
 import json
 import os
 import platform
@@ -24,7 +25,7 @@ from CRIT.charutils import CharUtils
 from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
 from CRIT.config import Config
 from CRIT.enums import Enums
-from CRIT.json_parser import JsonParser
+from CRIT.toml_parser import TomlParser
 from CRIT.utils import Utils
 from CRIT.loader import load_commands
 from CRIT import commands
@@ -121,7 +122,7 @@ class TUI:
             , 'load': None
             , 'help': None
         })
-        clear()
+        #clear()
         self.console.print(Rule(f'[bold green]Character Resources In Terminal[/bold green] [bold red]v{__version__}[/bold red]'))
         self.console.print('')
         try:
@@ -210,7 +211,7 @@ class TUI:
 
             self.console.print('updating spells')
             CharUtils.update_spells(self.character, bonus_spells)
-        clear()
+        #clear()
         self.console.print(Rule(f'[bold red]{self.character.name}[/bold red] the [bold green]{Utils.get_number_output(self.character.level)}[/bold green] level [bold blue]{self.character.class_}[/bold blue]'))
         self.character.changed = False
 
@@ -283,9 +284,9 @@ class TUI:
             return
         sheets_path = Utils.get_options_from_dir(Config.sheets_path)
         sheet_to_load = prompt('which sheet should we load? > ', completer=WordCompleter(sheets_path), validator=validator.WordValidator(sheets_path))
-        sheet_to_load = Path(Config.sheets_path, f'CRIT{sheet_to_load}.json'.replace(' ', '_'))
+        sheet_to_load = Path(Config.sheets_path, f'CRIT{sheet_to_load}.toml'.replace(' ', '_'))
         self.console.print('get character')
-        self.character = JsonParser.load_character(sheet_to_load)
+        self.character = TomlParser.load_character(sheet_to_load)
         self.character.sheet = sheet_to_load
         self.console.print('setup attributes')
         CharUtils.setup_attributes(self.character)
@@ -336,6 +337,6 @@ class TUI:
 
 if __name__ == '__main__':
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
-    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    # :niceos.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
