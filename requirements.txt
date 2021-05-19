@@ -1,6 +1,4 @@
 prompt_toolkit
 rich
 pathlib
-pkgutil
-traceback
 importlib
