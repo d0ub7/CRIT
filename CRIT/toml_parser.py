@@ -126,7 +126,7 @@ class TomlParser:
             char_data['spells'] = {}
             if character.spell_list:
                 for spell in character.spell_list:
-                    char_data['spells'][spell.level] = {
+                    char_data['spells'][str(spell.level)] = {
                         'save': spell.save
                         , 'slots': spell.slots
                         , 'remaining': spell.remaining
