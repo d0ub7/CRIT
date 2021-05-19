@@ -7,9 +7,9 @@ from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 
 
-class List(Command):
+class User(Command):
 
-    keywords = ['commands']
+    keywords = ['user']
     help_text = '''{keyword}
 {divider}
 Summary: List or modify "user" space

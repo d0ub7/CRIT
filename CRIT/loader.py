@@ -8,7 +8,6 @@ import pkgutil
 import sys
 
 from CRIT import commands
-import CRIT.commands.harm
 def load_commands(character, session, console):
     for mod_name in _iter_namespace(commands):
         short_name = mod_name.split('.')[2]
@@ -20,12 +19,15 @@ def load_commands(character, session, console):
 
             # Load class from imported module
             class_name = ''.join([x.title() for x in short_name.split('_')])
+            print(class_name)
             loaded_class = getattr(loaded_mod, class_name, None)
+            print(loaded_class)
             if not loaded_class:
                 continue
 
             # Create an instance of the class
             instance = loaded_class(character, session, console)
+            print(instance)
 
 def _iter_namespace(nsp):
     """
