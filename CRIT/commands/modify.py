@@ -1,7 +1,9 @@
+from prompt_toolkit.shortcuts.prompt import E
 from CRIT.commands import Command
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 from CRIT.utils import Utils
+from CRIT.enums import Enums
 from CRIT.validator import NumberValidator, WordValidator
 import json
 
@@ -24,7 +26,7 @@ Examples:
 
     def do_command(self, *args): #TODO add proper args support
         if not args:
-            mod_list = ['maxhp', 'skill', 'attribute']
+            mod_list = ['maxhp', 'skill', 'attribute', 'user']
             modify_option = prompt('modify > ', completer=WordCompleter(mod_list), validator=WordValidator(mod_list))
         else:
             try:
@@ -41,10 +43,7 @@ Examples:
             self.modify_attribute(self.character)
         
     def modify_attribute(self, character):
-        character.attr_list = []
-        for attr in character.attr_list:
-            character.attr_list.append(attr.name)
-        attr_to_modify = prompt('which attribute? > ', completer=WordCompleter(character.attr_list), validator=WordValidator(character.attr_list))
+        attr_to_modify = prompt('which attribute? > ', completer=WordCompleter(Enums.attributes), validator=WordValidator(Enums.attributes))
         for attr in character.attr_list:
             if attr.name == attr_to_modify:
                 opt_list = ['base', 'bonus']

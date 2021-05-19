@@ -149,7 +149,6 @@ class TomlParser:
                     if 'feats' in existing_data:
                         char_data['feats'] = existing_data['feats']
                 with open(char_file, 'w') as outfile:
-                    print(char_data)
                     toml.dump(char_data, outfile)
                     print(f'UPDATED {character.name}')
                 sys.exit(0)

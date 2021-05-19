@@ -122,7 +122,7 @@ class TUI:
             , 'load': None
             , 'help': None
         })
-        #clear()
+        clear()
         self.console.print(Rule(f'[bold green]Character Resources In Terminal[/bold green] [bold red]v{__version__}[/bold red]'))
         self.console.print('')
         try:
@@ -211,7 +211,7 @@ class TUI:
 
             self.console.print('updating spells')
             CharUtils.update_spells(self.character, bonus_spells)
-        #clear()
+        clear()
         self.console.print(Rule(f'[bold red]{self.character.name}[/bold red] the [bold green]{Utils.get_number_output(self.character.level)}[/bold green] level [bold blue]{self.character.class_}[/bold blue]'))
         self.character.changed = False
 
@@ -337,6 +337,6 @@ class TUI:
 
 if __name__ == '__main__':
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
-    # :niceos.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
