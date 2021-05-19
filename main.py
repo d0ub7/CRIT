@@ -19,6 +19,7 @@ from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
 
+from CRIT import (__name__ as CRIT_package, __path__ as CRIT_path)
 from CRIT import __version__, validator
 from CRIT.charutils import CharUtils
 from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
@@ -332,8 +333,13 @@ class TUI:
 
 def load_commands(character, session, console):
     path = os.path.join(os.path.dirname(__file__), 'CRIT', 'commands')
-    print(path)
     modules = pkgutil.iter_modules(path=[path])
+
+    prefix = CRIT_package + "."
+    modules = [m[1] for m in pkgutil.iter_modules(CRIT_path, prefix)]
+    for elm in _get_all_modules_pyinstaller():
+        if elm.startswith(prefix):
+            modules.append(elm)
 
     for loader, mod_name, ispkg in modules:
         # Ensure that module isn't already loaded
@@ -349,6 +355,15 @@ def load_commands(character, session, console):
 
             # Create an instance of the class
             instance = loaded_class(character, session, console)
+
+def _get_all_modules_pyinstaller():
+    # Special handling for PyInstaller
+    toc = set()
+    importers = pkgutil.iter_importers(__package__)
+    for i in importers:
+        if hasattr(i, 'toc'):
+            toc |= i.toc
+    return toc
 
 if __name__ == '__main__':
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
