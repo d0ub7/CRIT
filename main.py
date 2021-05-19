@@ -3,7 +3,6 @@ import os
 import platform
 import sys
 from pathlib import Path
-from importlib import import_module
 import pkgutil
 import traceback
 
@@ -19,6 +18,7 @@ from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
 
+
 from CRIT import __version__, validator
 from CRIT.charutils import CharUtils
 from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
@@ -26,6 +26,8 @@ from CRIT.config import Config
 from CRIT.enums import Enums
 from CRIT.json_parser import JsonParser
 from CRIT.utils import Utils
+from CRIT.loader import load_commands
+from CRIT import commands
 
 if platform.system() == 'Windows':
     from ctypes import windll, wintypes
@@ -119,7 +121,7 @@ class TUI:
             , 'load': None
             , 'help': None
         })
-        clear()
+        #clear()
         self.console.print(Rule(f'[bold green]Character Resources In Terminal[/bold green] [bold red]v{__version__}[/bold red]'))
         self.console.print('')
         try:
@@ -208,7 +210,7 @@ class TUI:
 
             self.console.print('updating spells')
             CharUtils.update_spells(self.character, bonus_spells)
-        clear()
+        #clear()
         self.console.print(Rule(f'[bold red]{self.character.name}[/bold red] the [bold green]{Utils.get_number_output(self.character.level)}[/bold green] level [bold blue]{self.character.class_}[/bold blue]'))
         self.character.changed = False
 
@@ -292,7 +294,6 @@ class TUI:
         self.first_update = False
         self.main_loop()
 
-
     #### _ __ ___   __ _(_)_ __   | | ___   ___  _ __
     ####| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \
     ####| | | | | | (_| | | | | | | | (_) | (_) | |_) |
@@ -301,6 +302,7 @@ class TUI:
 
     def main_loop(self):
         load_commands(self.character, self.session, self.console)
+
         while True:
             try:
                 if self.character.changed:
@@ -330,45 +332,10 @@ class TUI:
             except Exception as e:
                 traceback.print_exc()
 
-def load_commands(character, session, console):
-    path = os.path.join(os.path.dirname(__file__), 'CRIT', 'commands')
-    modules = pkgutil.iter_modules(path=[path])
 
-
-    _load_commands_pyinstaller('CRIT.commands')
-
-    for loader, mod_name, ispkg in modules:
-        # Ensure that module isn't already loaded
-        if mod_name not in sys.modules:
-            # Import module
-            loaded_mod = import_module('CRIT.commands.' + mod_name)
-
-            # Load class from imported module
-            class_name = ''.join([x.title() for x in mod_name.split('_')])
-            loaded_class = getattr(loaded_mod, class_name, None)
-            if not loaded_class:
-                continue
-
-            # Create an instance of the class
-            instance = loaded_class(character, session, console)
-
-def _load_commands_pyinstaller(ns_pkg):
-    prefix = ns_pkg.__name__ + "."
-    for p in pkgutil.iter_modules(ns_pkg.__path__, prefix):
-        yield p[1]
-
-    # special handling when the package is bundled with PyInstaller 3.5
-    # See https://github.com/pyinstaller/pyinstaller/issues/1905#issuecomment-445787510
-    toc = set()
-    for importer in pkgutil.iter_importers(ns_pkg.__name__.partition(".")[0]):
-        if hasattr(importer, 'toc'):
-            toc |= importer.toc
-    for name in toc:
-        if name.startswith(prefix):
-            yield name
 
 if __name__ == '__main__':
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
-    #os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
