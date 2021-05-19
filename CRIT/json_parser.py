@@ -1,16 +1,11 @@
 import json
-import click
 import os
 import sys
 from pathlib import PurePath
+from prompt_toolkit import prompt
 
-from CRIT.attribute import Attribute
-from CRIT.character import Character
+from CRIT.models import Attribute, Character, Item, Save, Skill, Spell
 from CRIT.config import Config
-from CRIT.item import Item
-from CRIT.save import Save
-from CRIT.skill import Skill
-from CRIT.spell import Spell
 
 class JsonParser:
     @staticmethod
@@ -29,8 +24,10 @@ class JsonParser:
             character.casting_stat = char_data['casting_stat'] if char_data['casting_stat'] else None
             
             if char_data['feats']:
-                if 'agile maneuvers' in (feat.lower() for feat in char_data['feats']):
-                    character.cmb_mod = 'dexterity'
+                for feat in char_data['feats']:
+                    character.feat_list.append(feat) 
+                # if 'agile maneuvers' in (feat.lower() for feat in char_data['feats']): TODO: move this to update
+                #     character.cmb_mod = 'dexterity'
 
             for name, attr in char_data['attributes'].items():
                 character.attr_list.append(Attribute(name = name
@@ -78,7 +75,7 @@ class JsonParser:
         return character
 
     @staticmethod
-    def save_character(character):
+    def save_character(character): #TODO make character completely json serializable
         try: 
             char_data = {}
             char_data['name'] = character.name
@@ -140,13 +137,15 @@ class JsonParser:
                         , 'remaining': spell.remaining
                         , 'base': spell.base
                     }
+            
+            char_data['feats'] = character.feat_list
 
             char_file = PurePath(f'{Config.sheets_path}', f'CRIT{character.name}.json'.replace(' ', '_'))
             really = True
             if os.path.isfile(char_file):
-                really = click.confirm(f'sheet for {character.name} exists, overwrite?')
+                really = prompt(f'sheet for {character.name} exists, overwrite? > ')
             if not really:
-                return()
+                return
             else:
                 with open(char_file, 'r+') as f:
                     existing_data = json.load(f)
@@ -154,6 +153,7 @@ class JsonParser:
                     char_data['feats'] = existing_data['feats']
                 with open(char_file, 'w') as outfile:
                     json.dump(char_data, outfile, indent=4)
+                    print(f'UPDATED {character.name}')
                 sys.exit(0)
         except Exception as e:
             raise RuntimeError

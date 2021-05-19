@@ -1,8 +1,6 @@
-from CRIT.attribute import Attribute
-from CRIT.enums import Enums
-from CRIT.mod import Ac, Mod
-from CRIT.save import Save
-from CRIT.utils import Utils
+from .models import Attribute, Mod, Save, Ac
+from .enums import Enums
+from .utils import Utils
 
 
 class CharUtils:

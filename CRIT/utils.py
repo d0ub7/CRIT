@@ -1,17 +1,20 @@
 import math
 import os
-import click
 from pathlib import Path
 import json
 
-from CRIT.config import Config
-from CRIT.enums import Enums
+from prompt_toolkit.completion.word_completer import WordCompleter
+from prompt_toolkit import prompt
+
+from .config import Config
+from .enums import Enums
+from .validator import NumberValidator, WordValidator
 
 from rich import box
-from rich.console import Console
-from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
+
+from CRIT import validator
 
 class Utils:
     @staticmethod
@@ -31,44 +34,44 @@ class Utils:
         
     @staticmethod
     def get_options_from_dir(path):
-        # returns a click.Choice
+        # returns a WordCompleter
         _list = []
         for elem in os.listdir(path):
             _list.append(elem.removesuffix('.json').removeprefix('CRIT'))
-        return(click.Choice(_list, case_sensitive=False))
+        return(_list)
 
     @staticmethod
     def character_creator(console):
         # Get Name
-        char_name = click.prompt('What is the character\'s name', type=click.STRING)
+        char_name = prompt('What is the character\'s name > ')
 
         # Get Level
-        char_level = click.prompt('What level is the character?', type=click.IntRange(1,20))
+        #, type=clik.IntRange(1,20)
+        lvl_list = [str(i+1) for i in range(20)]
+        char_level = Utils.str2int(prompt('What level is the character? > ', completer=WordCompleter(lvl_list), validator=WordValidator(lvl_list)))
 
         # Get Class
-        console.print(('[bold blue]Supported Clases[/bold blue]'))
-        char_class = click.prompt('What is the character\'s class', type=Utils.get_options_from_dir(Path(Config.data_path, 'classes')))
-        if not os.path.isfile(Path(Config.data_path, 'classes', f'{char_class}.json')):
-            console.print(f'[bold red]{char_class} class unsupported. Create it yourself![/bold red]')
-            return()
+        class_list = Utils.get_options_from_dir(Path(Config.data_path, 'classes'))
+        char_class = prompt('What is the character\'s class > ', completer=WordCompleter(class_list), validator=WordValidator(class_list))
 
         # Get Attributes
         console.print(Rule(f'[bold blue]What are the characters base attributes?,[/bold blue]'))
 
-        char_str = click.prompt('What is the character\'s strength', type=int)
-        char_dex = click.prompt('What is the character\'s dexterity', type=int)
-        char_con = click.prompt('What is the character\'s constitution', type=int)
-        char_int = click.prompt('What is the character\'s intelligence', type=int)
-        char_wis = click.prompt('What is the character\'s wisdom', type=int)
-        char_cha = click.prompt('What is the character\'s charisma', type=int)
-        char_hp =  click.prompt('What is the character\'s maximum HP', type=int)
+        char_str = Utils.str2int(prompt('What is the character\'s strength > ', validator=NumberValidator()))
+        char_dex = Utils.str2int(prompt('What is the character\'s dexterity > ', validator=NumberValidator()))
+        char_con = Utils.str2int(prompt('What is the character\'s constitution > ', validator=NumberValidator()))
+        char_int = Utils.str2int(prompt('What is the character\'s intelligence > ', validator=NumberValidator()))
+        char_wis = Utils.str2int(prompt('What is the character\'s wisdom > ', validator=NumberValidator()))
+        char_cha = Utils.str2int(prompt('What is the character\'s charisma > ', validator=NumberValidator()))
+        char_hp =  Utils.str2int(prompt('What is the character\'s maximum HP > ', validator=NumberValidator()))
 
-        char_size = click.prompt('What size are you?', type=click.Choice(Enums.sizes))
+        char_size = prompt('What size are you? > ', completer=WordCompleter(Enums.sizes), validator=WordValidator(Enums.sizes))
         # Get Skills
-        skills_type = click.prompt('What skills should we use? (leave blank for default)', type=Utils.get_options_from_dir(Path(Config.data_path, 'skills')), default='default')
+        skills_list = Utils.get_options_from_dir(Path(Config.data_path, 'skills'))
+        skills_type = prompt('What skills should we use? > ', completer=WordCompleter(skills_list), validator=WordValidator(skills_list) , default='default')
         if not os.path.isfile(Path(Config.data_path, 'skills', f'{skills_type}.json')):
             console.print(f'[bold red]{skills_type} skills unsupported. Create it yourself![/bold red]')
-            return()
+            return
         console.print(f'[bold red]{char_name}[/bold red] the [bold green]{Utils.get_number_output(char_level)}[/bold green] level [bold blue]{char_class}[/bold blue]')
         char_table = Table(box=box.ROUNDED)
 
@@ -84,7 +87,7 @@ class Utils:
         console.print(char_table)
 
         # Generate Character
-        if click.confirm(f'Should we create {char_name}?'):
+        if Utils.str2bool(prompt(f'Should we create {char_name}? > ')):
             with open(Path(Config.data_path, 'classes', f'{char_class}.json'), 'r') as f:
                 try: 
                     class_config = json.load(f)
@@ -137,7 +140,7 @@ class Utils:
                             skills_config = json.load(f)
                             char_data['skills_type'] = skills_type
                             for skil in skills_config['skills']:
-                                temp_ = click.prompt(f'How many ranks do you have in {skil}?'.replace('_', ' '))
+                                temp_ = prompt(f'How many ranks do you have in {skil}? > '.replace('_', ' '))
                                 class_ = True if skil in class_config['class_skills'] else False
                                 char_data['skills'][skil] = {
                                     'total': 0
@@ -166,10 +169,10 @@ class Utils:
 
                     really = True
                     if os.path.isfile(Path(Config.sheets_path, f'CRIT{char_name}.json'.replace(' ', '_'))):
-                        really = click.confirm(f'sheet for {char_name} exists, overwrite?')
+                        really = Utils.str2bool(prompt(f'sheet for {char_name} exists, overwrite? > '))
                     if not really:
                         console.print(f'[bold red] NOT CREATING {char_name} [/bold red]')
-                        return()
+                        return
                     else:
                         try:
                             os.mkdir(Path(Config.sheets_path))
@@ -181,3 +184,11 @@ class Utils:
                 except Exception as e:
                     console.print(e)
                     raise RuntimeError
+
+    @staticmethod
+    def str2bool(v):
+        return v.lower() in ("yes", "true", "t", "1", "y")
+
+    @staticmethod
+    def str2int(v):
+        return int(v)
