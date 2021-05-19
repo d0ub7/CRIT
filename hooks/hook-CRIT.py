@@ -1,3 +1,3 @@
-from PyInstaller.utils.hooks import collect_submodules, copy_metadata
+from PyInstaller.utils.hooks import collect_submodules
+
 hiddenimports = collect_submodules('CRIT.commands')
-datas = copy_metadata('CRIT')
