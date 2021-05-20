@@ -21,6 +21,7 @@ Examples:
         if self.character.hp > self.character.max_hp:
             self.character.hp = self.character.max_hp
         
-        for spell in self.character.spell_list:
-            spell.remaining = spell.slots
+        if self.character.spell_list:
+            for spell in self.character.spell_list:
+                spell.remaining = spell.slots
         self.character.changed = True

@@ -35,7 +35,7 @@ Examples:
         self.level(self.character, self.console, char_level)
         self.console.print('Remember to add your HP with the modify command')
     
-    def level(self, character, console, char_level):
+    def level(character, console, char_level):
         character.level = char_level
         char_level = char_level-1
         with open(Path(Config.data_path, 'classes', f'{character.class_}.json'), 'r') as f:
@@ -45,16 +45,17 @@ Examples:
             for sav in character.save_list:
                 sav.base = class_config[sav.name][char_level]
             # up spells 
-            console.print(character.spell_list)
-            console.print(class_config['spells'])
             if character.spell_list:
-                character.spell_list = []
-                for level, spell in class_config['spells'].items():
-                    console.print(f'level {level} spell {spell}')
-                    character.spell_list.append(Spell(level = int(level)
-                                                    , save = 0
-                                                    , slots = spell[char_level]
-                                                    , remaining = spell[char_level]
-                                                    , base = spell[char_level]
+                console.print(character.spell_list)
+                console.print(class_config['spells'])
+                if character.spell_list:
+                    character.spell_list = []
+                    for level, spell in class_config['spells'].items():
+                        console.print(f'level {level} spell {spell}')
+                        character.spell_list.append(Spell(level = int(level)
+                                                        , save = 0
+                                                        , slots = spell[char_level]
+                                                        , remaining = spell[char_level]
+                                                        , base = spell[char_level]
                     ))
-        self.character.changed = True
+        character.changed = True
