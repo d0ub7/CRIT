@@ -35,7 +35,7 @@ Examples:
         self.level(self.character, self.console, char_level)
         self.console.print('Remember to add your HP with the modify command')
     
-    def level(character, console, char_level):
+    def level(self, character, console, char_level):
         character.level = char_level
         char_level = char_level-1
         with open(Path(Config.data_path, 'classes', f'{character.class_}.json'), 'r') as f:
