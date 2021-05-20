@@ -22,7 +22,7 @@ Examples:
 
     def do_command(self, *args):
         # Bail out if we can't cast spells
-        if self.character.casting_stat == None:
+        if not self.character.casting_stat:
             self.console.print('cant cast spells')
             return
 

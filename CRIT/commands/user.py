@@ -1,4 +1,4 @@
-import json
+import toml
 
 from CRIT.commands import Command
 from CRIT.utils import Utils
@@ -24,21 +24,21 @@ Usage: {keyword}
         user_option = prompt('add, modify, or list user element > ', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
         if user_option == 'add':
             with open (self.character.sheet, 'r') as f:
-                existing_data = json.load(f)
+                existing_data = toml.load(f)
                 key_to_add = prompt('what to add to user space > ')
-                existing_data['usr'][key_to_add] = []
+                existing_data['usr'] = {key_to_add: []}
             with open (self.character.sheet, 'w+') as outfile:
-                json.dump(existing_data, outfile, indent=4)
+                toml.dump(existing_data, outfile)
             self.console.print(f'[bold green] UPDATED {self.character.name} [/bold green]')
         elif user_option == 'modify':
             with open (self.character.sheet, 'r') as f:
-                existing_data = json.load(f)
+                existing_data = toml.load(f)
                 values = existing_data['usr'].keys()
                 attr_to_update = prompt('what to update > ', completer=WordCompleter(values), validator=WordValidator(values))
                 value_to_add = prompt('what value should we add > ')
                 existing_data['usr'][attr_to_update].append(value_to_add)
             with open (self.character.sheet, 'w+') as outfile:
-                json.dump(existing_data, outfile, indent=4)
+                toml.dump(existing_data, outfile)
             self.console.print(f'[bold green] UPDATED {self.character.name} [/bold green]')
         elif user_option == 'list':
             Utils.user_output(self.character, self.console)

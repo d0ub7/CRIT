@@ -5,7 +5,6 @@ from prompt_toolkit.completion import WordCompleter
 from CRIT.utils import Utils
 from CRIT.enums import Enums
 from CRIT.validator import NumberValidator, WordValidator
-import json
 
 
 class Modify(Command):
@@ -26,7 +25,7 @@ Examples:
 
     def do_command(self, *args): #TODO add proper args support
         if not args:
-            mod_list = ['maxhp', 'skill', 'attribute', 'user']
+            mod_list = ['maxhp', 'skill', 'attribute']
             modify_option = prompt('modify > ', completer=WordCompleter(mod_list), validator=WordValidator(mod_list))
         else:
             try:
@@ -77,29 +76,3 @@ Examples:
                     new_bonus = Utils.str2int(prompt('what is the new skill bonus? > ', validator=NumberValidator()))
                     skill.bonus = new_bonus
         self.character.changed = True
-
-    def modify_user(self, character, console):
-        opt_list = ['add', 'modify', 'list']
-        user_option = prompt('add, modify, or list user element > ', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
-        if user_option == 'add':
-            with open (character.sheet, 'r') as f:
-                existing_data = json.load(f)
-                key_to_add = prompt('what to add to user space > ')
-                existing_data['usr'][key_to_add] = []
-            with open (character.sheet, 'w+') as outfile:
-                json.dump(existing_data, outfile, indent=4)
-            console.print(f'[bold green] UPDATED {character.name} [/bold green]')
-        elif user_option == 'modify':
-            with open (character.sheet, 'r') as f:
-                existing_data = json.load(f)
-                values = existing_data['usr'].keys()
-                attr_to_update = prompt('what to update > ', completer=WordCompleter(values), validator=WordValidator(values))
-                value_to_add = prompt('what value should we add > ')
-                existing_data['usr'][attr_to_update].append(value_to_add)
-            with open (character.sheet, 'w+') as outfile:
-                json.dump(existing_data, outfile, indent=4)
-            console.print(f'[bold green] UPDATED {character.name} [/bold green]')
-        elif user_option == 'list':
-            Utils.user_output(character, console)
-        else:
-            console.print('enter valid option')
