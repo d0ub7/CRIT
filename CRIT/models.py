@@ -110,6 +110,10 @@ class Spell:
 class Weapon:
     name: None
     equipped: False
-    ddice: None
-    dtype: None
+    damage: None
     bonus: None
+
+@dataclass
+class Damage:
+    dice: None
+    type_: None
