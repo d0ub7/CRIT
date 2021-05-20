@@ -5,7 +5,7 @@ system = platform.system()
 
 if system == 'Windows':
     pass
-    # import msvcrt
+    import msvcrt
 else:
     import sys
     import termios
@@ -29,14 +29,14 @@ class KBHit:
 
     def getch(self):
         if system == 'Windows':
-            # return msvcrt.getch()
+            return msvcrt.getch()
             pass
         else:
             return sys.stdin.read(1)
 
     def kbhit(self):
         if system == 'Windows':
-            # return msvcrt.kbhit()
+            return msvcrt.kbhit()
             pass
         else:
             dr, dw, de = select([sys.stdin], [], [], 0)

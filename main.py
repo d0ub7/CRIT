@@ -154,9 +154,9 @@ class TUI:
 
     def startup_console(self):
         if 'WINDIR' in os.environ and 'WT_SESSION' not in os.environ and 'ALACRITTY_LOG' not in os.environ:
-            set_terminal_size(150, 150)
+            set_terminal_size(250, 75)
             windll.kernel32.SetConsoleScreenBufferSize(windll.kernel32.GetStdHandle(-11), wintypes._COORD(100, 200))
-            self.console = Console(width=200)
+            self.console = Console(width=250)
         else:
             self.console = Console()
 
@@ -283,6 +283,9 @@ class TUI:
         if self.first_update == False:
             return
         sheets_path = Utils.get_options_from_dir(Config.sheets_path)
+        if sheets_path == []:
+            self.console.print('No sheets to load')
+            return
         sheet_to_load = prompt('which sheet should we load? > ', completer=WordCompleter(sheets_path), validator=validator.WordValidator(sheets_path))
         sheet_to_load = Path(Config.sheets_path, f'CRIT{sheet_to_load}.toml'.replace(' ', '_'))
         self.console.print('get character')

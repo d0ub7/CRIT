@@ -36,6 +36,8 @@ class Utils:
     @staticmethod
     def get_options_from_dir(path):
         _list = []
+        if not os.path.exists(path):
+            os.mkdir(path)
         for elem in os.listdir(path):
             _list.append(elem.removesuffix('.toml').removesuffix('.json').removeprefix('CRIT'))
         return(_list)
