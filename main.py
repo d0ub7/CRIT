@@ -4,7 +4,6 @@ import os
 import platform
 import sys
 from pathlib import Path
-import pkgutil
 import traceback
 
 from prompt_toolkit import HTML, PromptSession, prompt
@@ -20,15 +19,15 @@ from rich.rule import Rule
 from rich.table import Table
 
 
-from CRIT import __version__, validator
+from CRIT import __version__
 from CRIT.charutils import CharUtils
 from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
 from CRIT.config import Config
 from CRIT.enums import Enums
 from CRIT.toml_parser import TomlParser
+from CRIT.validator import WordValidator
 from CRIT.utils import Utils
 from CRIT.loader import load_commands
-from CRIT import commands
 
 if platform.system() == 'Windows':
     from ctypes import windll, wintypes
@@ -273,7 +272,7 @@ class TUI:
         self.console.print(f'[bold blue]Press tab to autocomplete options at any menu. you may create or load a sheet, options change after load.[/bold blue]')
 
     def c_exit(self, _):
-        if Utils.str2bool(prompt('Are you sure you want to quit > ')):
+        if Utils.str2bool(prompt('Are you sure you want to quit > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
             sys.exit(0)
 
     def c_create(self, _):
@@ -286,11 +285,10 @@ class TUI:
         if sheets_path == []:
             self.console.print('No sheets to load')
             return
-        sheet_to_load = prompt('which sheet should we load? > ', completer=WordCompleter(sheets_path), validator=validator.WordValidator(sheets_path))
-        sheet_to_load = Path(Config.sheets_path, f'CRIT{sheet_to_load}.toml'.replace(' ', '_'))
+        sheet_to_load = prompt('which sheet should we load? > ', completer=WordCompleter(sheets_path), validator=WordValidator(sheets_path))
+        sheet_to_load = Path(Config.sheets_path, sheet_to_load, f'CRIT{sheet_to_load}.toml'.replace(' ', '_'))
         self.console.print('get character')
         self.character = TomlParser.load_character(sheet_to_load)
-        self.character.sheet = sheet_to_load
         self.console.print('setup attributes')
         CharUtils.setup_attributes(self.character)
         self.console.print('setup saves')
@@ -325,12 +323,12 @@ class TUI:
 
                 command = self.character.commands.get(user_input[0]) or None
                 if not command:
-                    print('Unknown command.')
+                    self.console.print('Unknown command.')
                     continue
 
                 command.do_command(*user_input[1:])
 
-                print()
+                self.console.print()
             except (EOFError, KeyboardInterrupt):
                 pass
             except Exception as e:

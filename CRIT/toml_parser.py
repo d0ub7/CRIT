@@ -10,10 +10,26 @@ from CRIT.config import Config
 
 class TomlParser:
     @staticmethod
+    def load_items(character):
+        item_list = []
+        for item in os.listdir(os.path.dirname(character.sheet)):
+            if item.startswith('ITEM'):
+                item = os.path.join(os.path.dirname(character.sheet), item)
+                with open (item, 'r') as f:
+                    item_data = toml.load(f)
+                    for name, value in item_data.items():
+                        character.item_list.append(Item(name = name
+                                                        , equipped = value['equipped']
+                                                        , slot = value['slot']
+                                                        , ac = value['ac']
+                                                        , bonus = value['bonus']))
+
+    @staticmethod
     def load_character(sheet_to_load):
         with open(sheet_to_load, 'r') as f:
             char_data = toml.load(f)
             character = Character()
+            character.sheet = sheet_to_load
             character.hp = char_data['hp']
             character.max_hp = char_data['max_hp']
             character.name = char_data['name']
@@ -24,6 +40,7 @@ class TomlParser:
             character.skills_type = char_data['skills_type']
             character.casting_stat = char_data['casting_stat'] if 'casting_stat' in char_data else None
             
+            TomlParser.load_items(character)
             if 'feats' in char_data:
                 for feat in char_data['feats']:
                     character.feat_list.append(feat) 
@@ -37,14 +54,6 @@ class TomlParser:
                                                 , base = attr['base']
                                                 , item = 0
                                                 , mod = 0))
-
-            if 'items' in char_data:
-                for name, itm in char_data['items'].items():
-                    character.item_list.append(Item(name = name
-                                                    , equipped = itm['equipped']
-                                                    , slot = itm['slot']
-                                                    , ac = itm['ac']
-                                                    , bonus = itm['bonus']))
 
             for name, sav in char_data['saves'].items():
                 character.save_list.append(Save(name = name 
@@ -103,16 +112,6 @@ class TomlParser:
                     , 'base': save.base
                 }
 
-            char_data['items'] = {}
-            for item in character.item_list:
-                char_data['items'][item.name] = {
-                        'name': item.name
-                        , 'equipped': item.equipped
-                        , 'slot': item.slot
-                        , 'ac': item.ac
-                        , 'bonus': item.bonus
-                }
-
             char_data['skills'] = {}
             for skill in character.skill_list:
                 char_data['skills'][skill.name] = {
@@ -132,10 +131,22 @@ class TomlParser:
                         , 'remaining': spell.remaining
                         , 'base': spell.base
                     }
+
+            for item in character.item_list:
+                    item_file = PurePath(f'{Config.sheets_path}', item.name.replace(' ', '_'), f'ITEM{item.name}.toml'.replace(' ','_'))
+                    with open(item_file, 'w') as outfile:
+                        item_data = {}
+                        item_data[item.name] = {
+                                'equipped': item.equipped
+                                , 'slot': item.slot
+                                , 'ac': item.ac
+                                , 'bonus': item.bonus
+                        }
+                        toml.dump(item_data, outfile)
             
             char_data['feats'] = character.feat_list
 
-            char_file = PurePath(f'{Config.sheets_path}', f'CRIT{character.name}.toml'.replace(' ', '_'))
+            char_file = PurePath(f'{Config.sheets_path}', character.name.replace(' ', '_'), f'CRIT{character.name}.toml'.replace(' ', '_'))
             really = True
             if os.path.isfile(char_file):
                 really = prompt(f'sheet for {character.name} exists, overwrite? > ')

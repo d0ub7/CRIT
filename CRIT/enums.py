@@ -6,3 +6,4 @@ class Enums:
     bonus_types = ['armor', 'deflection', 'dodge', 'enhancement', 'natural', 'shield', 'size', 'resistance']
     ffac_types = ['armor', 'enhancement', 'natural', 'shield', 'size', 'resistance']
     touchac_types = ['deflection', 'dodge', 'size', 'resistance']
+    bool_choices = ["yes", "true", "t", "1", "y", 'no', 'false', 'n', '0', 'f']

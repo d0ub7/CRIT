@@ -7,6 +7,8 @@ from prompt_toolkit import prompt
 from CRIT.models import Attribute, Character, Item, Save, Skill, Spell
 from CRIT.config import Config
 
+#### DEPRECATED
+#### USE TOML PARSER
 class JsonParser:
     @staticmethod
     def load_character(sheet_to_load):
@@ -140,7 +142,7 @@ class JsonParser:
             
             char_data['feats'] = character.feat_list
 
-            char_file = PurePath(f'{Config.sheets_path}', f'CRIT{character.name}.json'.replace(' ', '_'))
+            char_file = PurePath(f'{Config.sheets_path}', character.name, f'CRIT{character.name}.json'.replace(' ', '_'))
             really = True
             if os.path.isfile(char_file):
                 really = prompt(f'sheet for {character.name} exists, overwrite? > ')

@@ -89,7 +89,7 @@ class Utils:
         console.print(char_table)
 
         # Generate Character
-        if Utils.str2bool(prompt(f'Should we create {char_name}? > ')):
+        if Utils.str2bool(prompt(f'Should we create {char_name}? > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
             with open(Path(Config.data_path, 'classes', f'{char_class}.json'), 'r') as f:
                 try: 
                     class_config = json.load(f)
@@ -170,17 +170,17 @@ class Utils:
                     char_data['feats'] = []
 
                     really = True
-                    if os.path.isfile(Path(Config.sheets_path, f'CRIT{char_name}.toml'.replace(' ', '_'))):
-                        really = Utils.str2bool(prompt(f'sheet for {char_name} exists, overwrite? > '))
+                    if os.path.isfile(Path(Config.sheets_path, char_name, f'CRIT{char_name}.toml'.replace(' ', '_'))):
+                        really = Utils.str2bool(prompt(f'sheet for {char_name} exists, overwrite? > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices)))
                     if not really:
                         console.print(f'[bold red] NOT CREATING {char_name} [/bold red]')
                         return
                     else:
                         try:
-                            os.mkdir(Path(Config.sheets_path))
+                            os.makedirs(Path(Config.sheets_path, char_name))
                         except:
                             pass
-                        with open(Path(Config.sheets_path, f'CRIT{char_name}.toml'.replace(' ', '_')), 'w+') as outfile:
+                        with open(Path(Config.sheets_path, char_name, f'CRIT{char_name}.toml'.replace(' ', '_')), 'w+') as outfile:
                             toml.dump(char_data, outfile)
                         console.print(f'[bold green] CREATED {char_name} [/bold green]')
                 except Exception as e:

@@ -48,7 +48,7 @@ Examples:
         dex_mod = 0
         item_slots = []
         item_slot = prompt('what slot is the item in? > ', completer=WordCompleter(Enums.gear_slots), validator=WordValidator(Enums.gear_slots))
-        if Utils.str2bool(prompt('is there a second slot? > ')):
+        if Utils.str2bool(prompt('is there a second slot? > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
             item_slot2 = prompt('what second slot is the item in? > ', completer=WordCompleter(Enums.gear_slots), validator=WordValidator(Enums.gear_slots))
             if item_slot != item_slot2:
                 item_slots.append(item_slot2)
@@ -96,12 +96,12 @@ Examples:
                     , ac = ac
                     , bonus = bonus
         )
-        if Utils.str2bool(prompt(f'create {new_item}?')):
+        if Utils.str2bool(prompt(f'create {new_item}?', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
             character.item_list.append(new_item)
 
     def list_items(self, character, console):
         for item in character.item_list:
-            console.print(item)
+            console.out(item) # print stopped working as the object got more complex
 
     def remove(self, character, console):
         item_list = []

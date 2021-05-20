@@ -1,7 +1,10 @@
+from CRIT.enums import Enums
+from prompt_toolkit.completion.word_completer import WordCompleter
 from CRIT.commands import Command
 from CRIT.utils import Utils
-from CRIT.validator import NumberValidator
+from CRIT.validator import NumberValidator, WordValidator
 from prompt_toolkit import prompt
+
 
 class Heal(Command):
 
@@ -28,7 +31,7 @@ Examples:
                 self.console.print('please enter an int')
                 return
         if((self.character.hp + heal_value) > self.character.max_hp):
-            if not Utils.str2bool(prompt('Should this overheal beyond max hp? > ')):
+            if not Utils.str2bool(prompt('Should this overheal beyond max hp? > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
                 self.character.hp = self.character.max_hp
             else:
                 self.character.hp += heal_value
