@@ -2,7 +2,7 @@ import math
 import os
 from pathlib import Path
 import toml
-import json
+import toml
 
 from prompt_toolkit.completion.word_completer import WordCompleter
 from prompt_toolkit import prompt
@@ -71,7 +71,7 @@ class Utils:
         # Get Skills
         skills_list = Utils.get_options_from_dir(Path(Config.data_path, 'skills'))
         skills_type = prompt('What skills should we use? > ', completer=WordCompleter(skills_list), validator=WordValidator(skills_list))
-        if not os.path.isfile(Path(Config.data_path, 'skills', f'{skills_type}.json')):
+        if not os.path.isfile(Path(Config.data_path, 'skills', f'{skills_type}.toml')):
             console.print(f'[bold red]{skills_type} skills unsupported. Create it yourself![/bold red]')
             return
         console.print(f'[bold red]{char_name}[/bold red] the [bold green]{Utils.get_number_output(char_level)}[/bold green] level [bold blue]{char_class}[/bold blue]')
@@ -90,9 +90,9 @@ class Utils:
 
         # Generate Character
         if Utils.str2bool(prompt(f'Should we create {char_name}? > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
-            with open(Path(Config.data_path, 'classes', f'{char_class}.json'), 'r') as f:
+            with open(Path(Config.data_path, 'classes', f'{char_class}.toml'), 'r') as f:
                 try: 
-                    class_config = json.load(f)
+                    class_config = toml.load(f)
                     char_data = {}
                     char_data['name'] = char_name
                     char_data['class'] = char_class
@@ -133,13 +133,13 @@ class Utils:
                         , 'base': class_config['will'][char_level-1]
                     }
 
-                    # We get skills here because it takes a json load and we want to verify other steps before getting here
+                    # We get skills here because it takes a toml load and we want to verify other steps before getting here
                     # also do here because we need this prompt and it's easier here
                     char_data['skills'] = {}
-                    if os.path.isfile(Path(Config.data_path, 'skills', f'{skills_type}.json')):
+                    if os.path.isfile(Path(Config.data_path, 'skills', f'{skills_type}.toml')):
                         console.print(Rule('[bold blue]Setting up skills[/bold blue]'))
-                        with open(Path(Config.data_path, 'skills', f'{skills_type}.json')) as f:
-                            skills_config = json.load(f)
+                        with open(Path(Config.data_path, 'skills', f'{skills_type}.toml')) as f:
+                            skills_config = toml.load(f)
                             char_data['skills_type'] = skills_type
                             for skil in skills_config['skills']:
                                 temp_ = prompt(f'How many ranks do you have in {skil}? > '.replace('_', ' '), validator=NumberValidator())
