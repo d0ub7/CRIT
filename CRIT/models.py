@@ -60,6 +60,7 @@ class Character:
         self.skill_list = []
         self.save_list = []
         self.feat_list = []
+        self.weapon_list = []
     
         self.commands = {}
 
@@ -109,11 +110,5 @@ class Spell:
 @dataclass
 class Weapon:
     name: None
-    equipped: False
     damage: None
-    bonus: None
-
-@dataclass
-class Damage:
-    dice: None
-    type_: None
+    bonus_damage: None

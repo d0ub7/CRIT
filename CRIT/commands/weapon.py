@@ -1,4 +1,5 @@
 from CRIT import models
+from CRIT import enums
 from CRIT.commands import Command
 from CRIT.enums import Enums
 from CRIT.utils import Utils
@@ -30,7 +31,7 @@ Examples:
             self.list_weapons(self.character, self.console)
 
         if modify_option == 'add':
-            self.add(self.character)
+            self.add(self.character, self.console)
 
         if modify_option == 'remove':
             self.remove(self.character, self.console)
@@ -41,138 +42,87 @@ Examples:
         if modify_option == 'unequip':
             self.unequip(self.character, self.console)
         
-    def add(self, character):
+    def add(self, character, console):
+        base_damage = {}
         weapon_name = prompt('what is the weapon\'s name > ')
-        acp = 0
-        ac_type = None
-        dex_mod = 0
-        weapon_slots = []
-        weapon_ac = Utils.str2int(prompt('What\'s the item\'s base damage? > '))
-        ac = {}
-        if weapon_ac != 0:
-            acp_list = ['0','-1','-2','-3','-4','-5','-6','-7','-8','-9']
-            acp = Utils.str2int(prompt('what is the acp of the item? > ', completer=WordCompleter(acp_list), validator=WordValidator(acp_list)))
-            ac_type = prompt('what type of ac bonus? > ', completer=WordCompleter(Enums.bonus_types), validator=WordValidator(Enums.bonus_types))
-            dex_list = ['-1','0','1','2','3','4','5','6','7','8','9']
-            dex_mod =  Utils.str2int(prompt('what is the max dex bonus (-1 for unlimited or N/A)? > ', completer=WordCompleter(dex_list), validator=WordValidator(dex_list)))
-            ac[ac_type] = {'ac': weapon_ac
-                        , 'acp': acp
-                        , 'dex_mod': dex_mod
-            }
-        mod_list = ['attribute', 'save', 'skill', 'no']
-        more = prompt('does the item modify anything else? > ', completer=WordCompleter(mod_list), validator=WordValidator(mod_list))
-        bonus = {}
-        while more != 'no':
-            if more == 'attribute':
-                weapon_attr = prompt(f'what {more} does the item modify? > ', completer=WordCompleter(Enums.attributes), validator=WordValidator(Enums.attributes))
-            if more == 'save':
-                sav_list = ['fortitude', 'reflex', 'will']
-                weapon_attr = prompt(f'what {more} does the item modify? > ', completer=WordCompleter(sav_list), validator=WordValidator(sav_list))
-            if more == 'skill':
-                skill_list = []
-                for skill in character.skill_list:
-                    skill_list.append(skill.name)
-                weapon_attr = Utils.str2int(prompt(f'what {more} does the item modify? > ', completer=WordCompleter(skill_list), validator=WordValidator(skill_list)))
-                # , type=clik.IntRange(-99,99)
-            howmuch_list = []
-            for i in range(-99,99):
-                howmuch_list.append(str(i))
-            weapon_attr_value = Utils.str2int(prompt(f'how much? > ', completer=WordCompleter(howmuch_list), validator=WordValidator(howmuch_list)))
-            weapon_attr_type = prompt('what type of bonus > ', completer=WordCompleter(Enums.bonus_types), validator=WordValidator(Enums.bonus_types))
-            bonus[weapon_attr] = {'value':  weapon_attr_value
-                            , 'type': weapon_attr_type}
-            more_list = ['attribute', 'save', 'skill', 'no']
-            more = prompt('does the item modify anything else? > ', completer=WordCompleter(more_list), validator=WordValidator(more_list))
+        weapon_roll = Utils.str2int(prompt('How many die in the weapons\'s base damage? > ', validator=NumberValidator()))
+        die_types = ['2', '3', '4', '6', '8', '10', '12', '20']
+        weapon_die = Utils.str2int(prompt('What kind of die? > ', completer=WordCompleter(die_types), validator=WordValidator(die_types)))
+        
+        weapon_type = prompt('what type of damage does the weapon do? > ', completer=WordCompleter(Enums.weapon_damage_types), validator=WordValidator(Enums.weapon_damage_types))
+        base_damage[weapon_type] = {'dice': f'{weapon_roll}d{weapon_die}'}
+       
+        more_damage_list = Enums.energy_damage_types + ['no']
+        more_damage = prompt('does the weapon do any additional damage? > ', completer=WordCompleter(more_damage_list), validator=WordValidator(more_damage_list))
+        bonus_damage = {}
+        while more_damage != 'no':
+            weapon_roll = Utils.str2int(prompt('How many die in the weapons\'s base damage? > ', validator=NumberValidator()))
+            die_types = ['2', '3', '4', '6', '8', '10', '12', '20']
+            weapon_die = Utils.str2int(prompt('What kind of die?', completer=WordCompleter(die_types), validator=WordValidator(die_types)))
+            
+            bonus_damage[more_damage] = {'dice': f'{weapon_roll}d{weapon_die}'}
+            more_damage = prompt('does the weapon do any additional damage? > ', completer=WordCompleter(more_damage_list), validator=WordValidator(more_damage_list))
 
-        new_item = models.Item(name = weapon_name
-                    , equipped = False
-                    , slot = weapon_slots
-                    , ac = ac
-                    , bonus = bonus
+        new_weapon = models.Weapon(name = weapon_name
+                    , damage = base_damage
+                    , bonus_damage = bonus_damage
         )
-        if Utils.str2bool(prompt(f'create {new_item}?', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
-            character.weapon_list.append(new_item)
+        console.print(new_weapon)
+        if Utils.str2bool(prompt(f'create? > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
+            character.weapon_list.append(new_weapon)
 
     def list_weapons(self, character, console):
-        for item in character.weapon_list:
-            console.out(item) # print stopped working as the object got more complex
+        for weapon in character.weapon_list:
+            console.out(weapon) # print stopped working as the object got more complex
 
     def remove(self, character, console):
         weapon_list = []
-        for item in character.weapon_list:
-            weapon_list.append(item.name)
+        for weapon in character.weapon_list:
+            weapon_list.append(weapon.name)
         
-        weapon_to_remove = prompt('remove which item > ', completer=WordCompleter(weapon_list), validator=WordValidator(weapon_list))
+        weapon_to_remove = prompt('remove which weapon > ', completer=WordCompleter(weapon_list), validator=WordValidator(weapon_list))
 
-        for item in character.weapon_list:
-            if item.name == weapon_to_remove:
+        for weapon in character.weapon_list:
+            if weapon.name == weapon_to_remove:
                 console.print(f'removing {weapon_to_remove}')
-                character.weapon_list.remove(item)
+                character.weapon_list.remove(weapon)
 
     def equip(self, character, console):
         weapon_list = []
-        for item in character.weapon_list:
-            if item.equipped == False:
-                weapon_list.append(item.name)
+        for weapon in character.weapon_list:
+            if weapon.equipped == True:
+                console.print(f'unequip {weapon.name} first')
+        for weapon in character.weapon_list:
+            if weapon.equipped == False:
+                weapon_list.append(weapon.name)
 
         if weapon_list == []:
             console.print('no weapons to equip')
             return
         
-        weapon_to_equip_name = prompt('equip which item? > ', completer=WordCompleter(weapon_list), validator=WordValidator(weapon_list))
+        weapon_to_equip_name = prompt('equip which weapon? > ', completer=WordCompleter(weapon_list), validator=WordValidator(weapon_list))
         weapon_to_equip = {}
-        for item in character.weapon_list:
-            if item.name == weapon_to_equip_name:
-                weapon_to_equip = item
-        
-        if 'slotless' in weapon_to_equip.slot:
-            pass
-        else:
-            equipped_weapons = []
-            for item in character.weapon_list:
-                if item.equipped == True:
-                    equipped_weapons.append(item)
-            
-            if (type(weapon_to_equip.slot) is str):
-                for item in equipped_weapons:
-                    if (type(item.slot) is str):
-                        if weapon_to_equip.slot == item.slot:
-                            console.print(f'unequip {item} first')
-                            return
-                    if (type(item.slot) is list):
-                        for slot in item.slot:
-                            if weapon_to_equip.slot == slot:
-                                console.print(f'unequip {item} first')
-                                return
-            if (type(weapon_to_equip.slot) is list):
-                for item in equipped_weapons:
-                    if (type(item.slot) is str):
-                        if item.slot in weapon_to_equip.slot:
-                            console.print(f'unequip {item} first')
-                            return
-                    if (type(item.slot) is list):
-                        for slot in item.slot:
-                            if slot in weapon_to_equip.slot:
-                                console.print(f'unequip {item} first')
-                                return
+        for weapon in character.weapon_list:
+            if weapon.name == weapon_to_equip_name:
+                weapon_to_equip = weapon
 
-        for item in character.weapon_list:
-            if item.name == weapon_to_equip.name:
-                item.equipped = True
+        for weapon in character.weapon_list:
+            if weapon.name == weapon_to_equip.name:
+                weapon.equipped = True
                 self.character.changed = True
 
     def unequip(self, character, console):
         weapon_list = []
-        for item in character.weapon_list:
-            if item.equipped == True:
-                weapon_list.append(item.name)
+        for weapon in character.weapon_list:
+            if weapon.equipped == True:
+                weapon_list.append(weapon.name)
         
         if weapon_list == []:
             console.print('no weapons to unequip')
             return
 
-        weapon_to_unequip_name = prompt('unequip which item? > ', completer=WordCompleter(weapon_list), validator=WordValidator(weapon_list))
-        for item in character.weapon_list:
-            if item.name == weapon_to_unequip_name:
-                item.equipped = False
+        weapon_to_unequip_name = prompt('unequip which weapon? > ', completer=WordCompleter(weapon_list), validator=WordValidator(weapon_list))
+        for weapon in character.weapon_list:
+            if weapon.name == weapon_to_unequip_name:
+                weapon.equipped = False
                 self.character.changed = True
