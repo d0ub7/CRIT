@@ -3,7 +3,6 @@ from prompt_toolkit.completion.word_completer import WordCompleter
 from CRIT.validator import WordValidator
 from CRIT.commands import Command
 from CRIT.utils import Utils
-from CRIT.json_parser import JsonParser
 from CRIT.toml_parser import TomlParser
 from prompt_toolkit import prompt
 
@@ -14,7 +13,7 @@ class Save(Command):
     keywords = ['save']
     help_text = '''{keyword}
 {divider}
-Summary: Save to json
+Summary: Save to toml
 
 Usage: {keyword}
 '''

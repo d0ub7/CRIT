@@ -5,7 +5,7 @@ from CRIT.utils import Utils
 from pathlib import Path
 from CRIT.models import Spell
 from CRIT.config import Config
-import json
+import toml
 
 class Level(Command):
 
@@ -38,8 +38,8 @@ Examples:
     def level(self, character, console, char_level):
         character.level = char_level
         char_level = char_level-1
-        with open(Path(Config.data_path, 'classes', f'{character.class_}.json'), 'r') as f:
-            class_config = json.load(f)
+        with open(Path(Config.data_path, 'classes', f'{character.class_}.toml'), 'r') as f:
+            class_config = toml.load(f)
             character.bab = class_config['bab'][char_level]
             # up saves
             for sav in character.save_list:

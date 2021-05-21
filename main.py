@@ -1,5 +1,4 @@
-from CRIT.toml_parser import TomlParser
-import json
+import toml
 import os
 import platform
 import sys
@@ -205,8 +204,8 @@ class TUI:
 
         if self.character.casting_stat:
             # get bonus spell data
-            with open(Path(Config.data_path, 'spells', 'bonus.json'), 'r') as f:
-                bonus_spells = json.load(f)
+            with open(Path(Config.data_path, 'spells', 'bonus.toml'), 'r') as f:
+                bonus_spells = toml.load(f)
 
             self.console.print('updating spells')
             CharUtils.update_spells(self.character, bonus_spells)
@@ -338,6 +337,6 @@ class TUI:
 
 if __name__ == '__main__':
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
-    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    #os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
