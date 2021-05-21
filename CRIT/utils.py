@@ -77,8 +77,8 @@ class Utils:
         console.print(f'[bold red]{char_name}[/bold red] the [bold green]{Utils.get_number_output(char_level)}[/bold green] level [bold blue]{char_class}[/bold blue]')
         char_table = Table(box=box.ROUNDED)
 
-        char_table.add_column("Attribute", justify='center', style='cyan', no_wrap=True)
-        char_table.add_column("Value",     justify='center', style='green')
+        char_table.add_column('Attribute', justify='center', style='cyan', no_wrap=True)
+        char_table.add_column('Value',     justify='center', style='green')
         char_table.add_row('Strength',     f'{char_str}')
         char_table.add_row('Dexterity',    f'{char_dex}')
         char_table.add_row('Constitution', f'{char_con}')
@@ -189,7 +189,7 @@ class Utils:
 
     @staticmethod
     def str2bool(v):
-        return v.lower() in ("yes", "true", "t", "1", "y")
+        return v.lower() in ('yes', 'true', 't', '1', 'y')
 
     @staticmethod
     def str2int(v):

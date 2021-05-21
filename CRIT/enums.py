@@ -6,4 +6,6 @@ class Enums:
     bonus_types = ['armor', 'deflection', 'dodge', 'enhancement', 'natural', 'shield', 'size', 'resistance']
     ffac_types = ['armor', 'enhancement', 'natural', 'shield', 'size', 'resistance']
     touchac_types = ['deflection', 'dodge', 'size', 'resistance']
-    bool_choices = ["yes", "true", "t", "1", "y", 'no', 'false', 'n', '0', 'f']
+    bool_choices = ['yes', 'no', 'true', 't', '1', 'y', 'false', 'n', '0', 'f']
+    weapon_damage_types = ['bludgeoning', 'piercing', 'slashing']
+    energy_damage_types = ['acid', 'cold', 'electricity', 'fire', 'sonic']

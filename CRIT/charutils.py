@@ -4,6 +4,7 @@ from .utils import Utils
 
 
 class CharUtils:
+
     @staticmethod
     def get_unique_ac_buffs(character):
         ac_buffs = []

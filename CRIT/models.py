@@ -1,11 +1,23 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class Ac:
     ac: None
     type_: None
     acp: None
     dex_mod: None
+
+
+@dataclass
+class Attack:
+    name: None
+    weapon: None
+    attack_mod: None
+    bonus_attack: None
+    damage_mod: None
+    bonus_damage: None
+
 
 @dataclass
 class Attribute:
@@ -16,9 +28,10 @@ class Attribute:
     item: None
     mod: None
 
+
 class Character:
     def __init__(self) -> None:
-        #### CHARACTER
+        # CHARACTER
         self.hp = 0
         self.max_hp = 99
         self.name = None
@@ -60,10 +73,13 @@ class Character:
         self.skill_list = []
         self.save_list = []
         self.feat_list = []
-    
+        self.weapon_list = []
+        self.attack_list = []
+
         self.commands = {}
 
         self.changed = True
+
 
 @dataclass
 class Item:
@@ -73,11 +89,13 @@ class Item:
     ac: None
     bonus: None
 
+
 @dataclass
 class Mod:
     stat: None
     type_: None
     value: None
+
 
 @dataclass
 class Save:
@@ -87,6 +105,7 @@ class Save:
     bonus: None
     base: None
     item: None
+
 
 @dataclass
 class Skill:
@@ -98,6 +117,7 @@ class Skill:
     class_: None
     item: None
 
+
 @dataclass
 class Spell:
     level: None
@@ -106,10 +126,9 @@ class Spell:
     remaining: None
     base: None
 
+
 @dataclass
 class Weapon:
     name: None
-    equipped: False
-    ddice: None
-    dtype: None
-    bonus: None
+    damage: None
+    bonus_damage: None

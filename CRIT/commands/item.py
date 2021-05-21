@@ -30,7 +30,7 @@ Examples:
             self.list_items(self.character, self.console)
 
         if modify_option == 'add':
-            self.add(self.character)
+            self.add(self.character, self.console)
 
         if modify_option == 'remove':
             self.remove(self.character, self.console)
@@ -41,7 +41,7 @@ Examples:
         if modify_option == 'unequip':
             self.unequip(self.character, self.console)
         
-    def add(self, character):
+    def add(self, character, console):
         item_name = prompt('what is the item\'s name > ')
         acp = 0
         ac_type = None
@@ -96,7 +96,8 @@ Examples:
                     , ac = ac
                     , bonus = bonus
         )
-        if Utils.str2bool(prompt(f'create {new_item}?', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
+        console.print(new_item)
+        if Utils.str2bool(prompt(f'create?', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
             character.item_list.append(new_item)
 
     def list_items(self, character, console):

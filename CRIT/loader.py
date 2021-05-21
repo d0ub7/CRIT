@@ -8,6 +8,8 @@ import pkgutil
 import sys
 
 from CRIT import commands
+
+
 def load_commands(character, session, console):
     for mod_name in _iter_namespace(commands):
         short_name = mod_name.split('.')[2]
@@ -26,23 +28,24 @@ def load_commands(character, session, console):
             # Create an instance of the class
             instance = loaded_class(character, session, console)
 
+
 def _iter_namespace(nsp):
-    """
+    '''
     Return an iterator of names of modules found in a specific namespace.
     The names are made absolute, with the namespace as prefix, to simplify
     import.
-    """
+    '''
     # Specifying the second argument (prefix) to iter_modules makes the
     # returned name an absolute name instead of a relative one. This allows
     # import_module to work without having to do additional modification to
     # the name.
-    prefix = nsp.__name__ + "."
+    prefix = nsp.__name__ + '.'
     for pkg in pkgutil.iter_modules(nsp.__path__, prefix):
         yield pkg[1]  # pkg is (finder, name, ispkg)
     # special handling when the package is bundled with PyInstaller
     # See https://github.com/pyinstaller/pyinstaller/issues/1905
     toc = set()  # table of content
-    for importer in pkgutil.iter_importers(nsp.__name__.partition(".")[0]):
+    for importer in pkgutil.iter_importers(nsp.__name__.partition('.')[0]):
         if hasattr(importer, 'toc'):
             toc |= importer.toc
     for name in toc:
