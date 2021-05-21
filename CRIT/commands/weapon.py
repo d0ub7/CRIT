@@ -1,6 +1,5 @@
-from CRIT import models
-from CRIT import enums
 from CRIT.commands import Command
+from CRIT import models
 from CRIT.enums import Enums
 from CRIT.utils import Utils
 from CRIT.validator import NumberValidator, WordValidator
@@ -20,12 +19,10 @@ Examples:
     {keyword} add
     {keyword} remove 
     {keyword} list
-    {keyword} equip
-    {keyword} unequip
 '''
 
     def do_command(self, *args): #TODO add proper args support
-        mod_options = ['list', 'add', 'remove', 'equip', 'unequip']
+        mod_options = ['list', 'add', 'remove']
         modify_option = prompt(f'{mod_options} > ', completer=WordCompleter(mod_options), validator=WordValidator(mod_options))
         if modify_option == 'list':
             self.list_weapons(self.character, self.console)
@@ -35,12 +32,6 @@ Examples:
 
         if modify_option == 'remove':
             self.remove(self.character, self.console)
-
-        if modify_option == 'equip':
-            self.equip(self.character, self.console)
-
-        if modify_option == 'unequip':
-            self.unequip(self.character, self.console)
         
     def add(self, character, console):
         base_damage = {}
@@ -49,10 +40,11 @@ Examples:
         die_types = ['2', '3', '4', '6', '8', '10', '12', '20']
         weapon_die = Utils.str2int(prompt('What kind of die? > ', completer=WordCompleter(die_types), validator=WordValidator(die_types)))
         
-        weapon_type = prompt('what type of damage does the weapon do? > ', completer=WordCompleter(Enums.weapon_damage_types), validator=WordValidator(Enums.weapon_damage_types))
+        damage_types = Enums.weapon_damage_types + Enums.energy_damage_types
+        weapon_type = prompt('what type of damage does the weapon do? > ', completer=WordCompleter(damage_types), validator=WordValidator(damage_types))
         base_damage[weapon_type] = {'dice': f'{weapon_roll}d{weapon_die}'}
        
-        more_damage_list = Enums.energy_damage_types + ['no']
+        more_damage_list = damage_types + ['no']
         more_damage = prompt('does the weapon do any additional damage? > ', completer=WordCompleter(more_damage_list), validator=WordValidator(more_damage_list))
         bonus_damage = {}
         while more_damage != 'no':
@@ -86,43 +78,3 @@ Examples:
             if weapon.name == weapon_to_remove:
                 console.print(f'removing {weapon_to_remove}')
                 character.weapon_list.remove(weapon)
-
-    def equip(self, character, console):
-        weapon_list = []
-        for weapon in character.weapon_list:
-            if weapon.equipped == True:
-                console.print(f'unequip {weapon.name} first')
-        for weapon in character.weapon_list:
-            if weapon.equipped == False:
-                weapon_list.append(weapon.name)
-
-        if weapon_list == []:
-            console.print('no weapons to equip')
-            return
-        
-        weapon_to_equip_name = prompt('equip which weapon? > ', completer=WordCompleter(weapon_list), validator=WordValidator(weapon_list))
-        weapon_to_equip = {}
-        for weapon in character.weapon_list:
-            if weapon.name == weapon_to_equip_name:
-                weapon_to_equip = weapon
-
-        for weapon in character.weapon_list:
-            if weapon.name == weapon_to_equip.name:
-                weapon.equipped = True
-                self.character.changed = True
-
-    def unequip(self, character, console):
-        weapon_list = []
-        for weapon in character.weapon_list:
-            if weapon.equipped == True:
-                weapon_list.append(weapon.name)
-        
-        if weapon_list == []:
-            console.print('no weapons to unequip')
-            return
-
-        weapon_to_unequip_name = prompt('unequip which weapon? > ', completer=WordCompleter(weapon_list), validator=WordValidator(weapon_list))
-        for weapon in character.weapon_list:
-            if weapon.name == weapon_to_unequip_name:
-                weapon.equipped = False
-                self.character.changed = True

@@ -8,6 +8,14 @@ class Ac:
     dex_mod: None
 
 @dataclass
+class Attack:
+    name: None
+    weapon: None
+    attack_mod: None
+    bonus_attack: None
+    damage_mod: None
+    bonus_damage: None
+@dataclass
 class Attribute:
     name: None
     total: None
@@ -61,6 +69,7 @@ class Character:
         self.save_list = []
         self.feat_list = []
         self.weapon_list = []
+        self.attack_list = []
     
         self.commands = {}
 

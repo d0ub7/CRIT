@@ -41,7 +41,7 @@ Examples:
         if modify_option == 'unequip':
             self.unequip(self.character, self.console)
         
-    def add(self, character):
+    def add(self, character, console):
         item_name = prompt('what is the item\'s name > ')
         acp = 0
         ac_type = None

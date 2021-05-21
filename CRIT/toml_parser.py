@@ -4,7 +4,7 @@ import sys
 from pathlib import PurePath
 from prompt_toolkit import prompt
 
-from CRIT.models import Attribute, Character, Item, Save, Skill, Spell, Weapon
+from CRIT.models import Attribute, Character, Item, Save, Skill, Spell, Weapon, Attack
 from CRIT.config import Config
 
 
@@ -84,6 +84,16 @@ class TomlParser:
                                                     , damage = wpn['damage']
                                                     , bonus_damage = wpn['bonus_damage']
                     ))
+            
+            if 'attacks' in char_data:
+                for name, atk in char_data['attacks'].items():
+                    character.attack_list.append(Attack(name = name
+                                                    , weapon = atk['weapon']
+                                                    , attack_mod = atk['attack_mod']
+                                                    , bonus_attack = atk['bonus_attack']
+                                                    , damage_mod = atk['damage_mod']
+                                                    , bonus_damage = atk['bonus_damage']
+                    ))
 
         return character
 
@@ -152,6 +162,16 @@ class TomlParser:
                 char_data['weapons'][weapon.name] = {
                             'damage': weapon.damage
                             , 'bonus_damage': weapon.bonus_damage
+                }
+            
+            char_data['attacks'] = {}
+            for attack in character.attack_list:
+                char_data['attacks'][attack.name] = {
+                            'weapon': attack.weapon
+                            , 'attack_mod': attack.attack_mod
+                            , 'bonus_attack': attack.bonus_attack
+                            , 'damage_mod': attack.damage_mod
+                            , 'bonus_damage': attack.bonus_damage
                 }
             
             char_data['feats'] = character.feat_list
