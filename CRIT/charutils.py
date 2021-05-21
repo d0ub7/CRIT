@@ -10,11 +10,8 @@ class CharUtils:
         for item in character.item_list:
             if item.equipped is True:
                 for name, ac in item.ac.items():
-                    ac_buffs.append(Ac(ac = ac['ac']
-                                    , type_ = name
-                                    , acp = ac['acp']
-                                    , dex_mod = ac['dex_mod']
-                    ))
+                    ac_buffs.append(Ac(ac=ac['ac'], type_=name, acp=ac['acp'], dex_mod=ac['dex_mod']
+                                       ))
         acdict = {}
         for buff in ac_buffs:
             if buff.type_ in acdict.keys():
@@ -28,7 +25,7 @@ class CharUtils:
         for buff in ac_buffs:
             if buff.type_ in acdict.keys() and buff.ac not in acdict.values():
                 ac_buffs.remove(buff)
-        
+
         return ac_buffs
 
     @staticmethod
@@ -39,9 +36,7 @@ class CharUtils:
             if item.equipped is True:
                 for name, bonus in item.bonus.items():
                     item_buffs.append(Mod(
-                                    stat = name
-                                    , type_ = bonus['type']
-                                    , value = bonus['value']
+                        stat=name, type_=bonus['type'], value=bonus['value']
                     ))
         buffdict = {}
         for buff in item_buffs:
@@ -53,92 +48,49 @@ class CharUtils:
             else:
                 buffdict[f'{buff.stat}_{buff.type_}'] = buff.value
         for buff, value in buffdict.items():
-            unique_item_buffs.append(Mod(stat = buff.split('_')[0]
-                                , type_ = buff.split('_')[1]
-                                , value = value
-                                ))
+            unique_item_buffs.append(Mod(stat=buff.split('_')[0], type_=buff.split('_')[1], value=value
+                                         ))
         return unique_item_buffs
 
     @staticmethod
     def setup_attributes(character):
         for attribute in character.attr_list:
             if attribute.name == 'strength':
-                character.strength = Attribute(name = 'strength'
-                                        , total = attribute.total
-                                        , bonus = attribute.bonus
-                                        , base = attribute.base
-                                        , item = 0
-                                        , mod = 0)
+                character.strength = Attribute(
+                    name='strength', total=attribute.total, bonus=attribute.bonus, base=attribute.base, item=0, mod=0)
             if attribute.name == 'dexterity':
-                character.dexterity = Attribute(name = 'dexterity'
-                                        , total = attribute.total
-                                        , bonus = attribute.bonus
-                                        , base = attribute.base
-                                        , item = 0
-                                        , mod = 0)
+                character.dexterity = Attribute(
+                    name='dexterity', total=attribute.total, bonus=attribute.bonus, base=attribute.base, item=0, mod=0)
             if attribute.name == 'constitution':
-                character.constitution = Attribute(name = 'constitution'
-                                        , total = attribute.total
-                                        , bonus = attribute.bonus
-                                        , base = attribute.base
-                                        , item = 0
-                                        , mod = 0)
+                character.constitution = Attribute(
+                    name='constitution', total=attribute.total, bonus=attribute.bonus, base=attribute.base, item=0, mod=0)
             if attribute.name == 'intelligence':
-                character.intelligence = Attribute(name = 'intelligence'
-                                        , total = attribute.total
-                                        , bonus = attribute.bonus
-                                        , base = attribute.base
-                                        , item = 0
-                                        , mod = 0)
+                character.intelligence = Attribute(
+                    name='intelligence', total=attribute.total, bonus=attribute.bonus, base=attribute.base, item=0, mod=0)
             if attribute.name == 'wisdom':
-                character.wisdom = Attribute(name = 'wisdom'
-                                        , total = attribute.total
-                                        , bonus = attribute.bonus
-                                        , base = attribute.base
-                                        , item = 0
-                                        , mod = 0)
+                character.wisdom = Attribute(
+                    name='wisdom', total=attribute.total, bonus=attribute.bonus, base=attribute.base, item=0, mod=0)
             if attribute.name == 'charisma':
-                character.charisma = Attribute(name = 'charisma'
-                                        , total = attribute.total
-                                        , bonus = attribute.bonus
-                                        , base = attribute.base
-                                        , item = 0
-                                        , mod = 0)
-            character.attr_list = [character.strength
-                                , character.dexterity
-                                , character.constitution
-                                , character.intelligence
-                                , character.wisdom
-                                , character.charisma]
+                character.charisma = Attribute(
+                    name='charisma', total=attribute.total, bonus=attribute.bonus, base=attribute.base, item=0, mod=0)
+            character.attr_list = [character.strength, character.dexterity,
+                                   character.constitution, character.intelligence, character.wisdom, character.charisma]
 
     @staticmethod
     def setup_saves(character):
         for sav in character.save_list:
             if sav.name == 'fortitude':
-                character.fortitude = Save(name = 'fortitude'
-                                        , total = sav.total
-                                        , ability = sav.ability
-                                        , bonus = sav.bonus
-                                        , base = sav.base
-                                        , item = 0)
+                character.fortitude = Save(
+                    name='fortitude', total=sav.total, ability=sav.ability, bonus=sav.bonus, base=sav.base, item=0)
             if sav.name == 'reflex':
-                character.reflex = Save(name = 'reflex'
-                                        , total = sav.total
-                                        , ability = sav.ability
-                                        , bonus = sav.bonus
-                                        , base = sav.base
-                                        , item = 0)
+                character.reflex = Save(
+                    name='reflex', total=sav.total, ability=sav.ability, bonus=sav.bonus, base=sav.base, item=0)
             if sav.name == 'will':
-                character.will = Save(name = 'will'
-                                        , total = sav.total
-                                        , ability = sav.ability
-                                        , bonus = sav.bonus
-                                        , base = sav.base
-                                        , item = 0)
+                character.will = Save(
+                    name='will', total=sav.total, ability=sav.ability, bonus=sav.bonus, base=sav.base, item=0)
 
-                character.save_list = [character.fortitude
-                                    , character.reflex
-                                    , character.will]
+                character.save_list = [
+                    character.fortitude, character.reflex, character.will]
 
     @staticmethod
     def update_ac(character):
@@ -155,7 +107,6 @@ class CharUtils:
                 character.dex_mod = buff.dex_mod if character.dex_mod > buff.dex_mod else character.dex_mod
             character.acp = buff.acp if character.acp > buff.acp else character.acp
             total_buff_ac += buff.ac
-        
 
         dex_to_ac = character.dexterity.mod if character.dex_mod > character.dexterity.mod else character.dex_mod
         character.ac = 10 - character.size_mod + dex_to_ac + total_buff_ac
@@ -200,7 +151,7 @@ class CharUtils:
                 skill.total += character.wisdom.mod
             if skill.ability == 'charisma':
                 skill.total += character.charisma.mod
-            
+
             skill.total += skill.bonus
             skill.total += skill.item
 
@@ -221,7 +172,7 @@ class CharUtils:
                 if spel.base != 0:
                     spel.save = 10 + spel.level + current_casting_mod
                     spel.slots = bonus_spells[str(current_casting_mod)][spel.level-1] + spel.base
-    
+
     @staticmethod
     def update_saves(character, item_buffs):
         for save in character.save_list:
@@ -229,6 +180,9 @@ class CharUtils:
             for buff in item_buffs:
                 if buff.stat == save.name:
                     save.item += buff.value
-        character.fortitude.total = character.fortitude.base + character.constitution.mod + character.fortitude.bonus + character.fortitude.item
-        character.reflex.total = character.reflex.base + character.dexterity.mod + character.reflex.bonus + character.reflex.item
-        character.will.total = character.will.base + character.wisdom.mod + character.will.bonus + character.will.item
+        character.fortitude.total = character.fortitude.base + \
+            character.constitution.mod + character.fortitude.bonus + character.fortitude.item
+        character.reflex.total = character.reflex.base + \
+            character.dexterity.mod + character.reflex.bonus + character.reflex.item
+        character.will.total = character.will.base + \
+            character.wisdom.mod + character.will.bonus + character.will.item

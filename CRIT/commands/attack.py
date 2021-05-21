@@ -115,10 +115,6 @@ Examples:
         for k, v in weapon_to_use.bonus_damage.items():
             bonus_damage[k] = v['dice']
 
-
-
-
-
         ## Attack(name='test', weapon='test', attack_mod=['strength'], bonus_attack='5', damage_mod=['strength'], bonus_damage='5')
         final_atk = character.bab
         for attribute in character.attr_list:

@@ -30,7 +30,7 @@ Examples:
             self.list_items(self.character, self.console)
 
         if modify_option == 'add':
-            self.add(self.character)
+            self.add(self.character, self.console)
 
         if modify_option == 'remove':
             self.remove(self.character, self.console)
