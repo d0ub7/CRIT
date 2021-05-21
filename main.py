@@ -32,7 +32,6 @@ from CRIT.loader import load_commands
 if platform.system() == 'Windows':
     from ctypes import windll, wintypes
 
-
 class DnDCompleter(Completer):
     '''
     Simple autocompletion on a list of words.
@@ -71,8 +70,7 @@ class DnDCompleter(Completer):
         if self.sentence:
             word_before_cursor = document.text_before_cursor
         else:
-            word_before_cursor = document.get_word_before_cursor(
-                WORD=self.WORD)
+            word_before_cursor = document.get_word_before_cursor(WORD=self.WORD)
 
         if self.ignore_case:
             word_before_cursor = word_before_cursor.lower()
@@ -104,11 +102,9 @@ class DnDCompleter(Completer):
                     word, -len(word_before_cursor), display_meta=display_meta
                 )
 
-
 class TUI:
     def __init__(self):
-        self.session = PromptSession(
-            reserve_space_for_menu=6, complete_in_thread=True)
+        self.session = PromptSession(reserve_space_for_menu=6, complete_in_thread=True)
         self.console = None
         self.table = None
         self.os = platform.system()
@@ -120,11 +116,13 @@ class TUI:
     def start(self):
         self.startup_console()
         self.completer = NestedCompleter.from_nested_dict({
-            'create': None, 'exit': None, 'load': None, 'help': None
+            'create': None
+            , 'exit': None
+            , 'load': None
+            , 'help': None
         })
         clear()
-        self.console.print(Rule(
-            f'[bold green]Character Resources In Terminal[/bold green] [bold red]v{__version__}[/bold red]'))
+        self.console.print(Rule(f'[bold green]Character Resources In Terminal[/bold green] [bold red]v{__version__}[/bold red]'))
         self.console.print('')
         try:
             with open('PermissionTest', 'w') as _:
@@ -138,8 +136,7 @@ class TUI:
 
         while True:
             try:
-                command = self.session.prompt(
-                    HTML('<ansibrightgreen>CRIT></ansibrightgreen> '), completer=self.completer)
+                command = self.session.prompt(HTML('<ansibrightgreen>CRIT></ansibrightgreen> '), completer=self.completer)
             except KeyboardInterrupt:
                 continue
             except EOFError:
@@ -148,8 +145,7 @@ class TUI:
                 command = command.split(' ', 1)
                 if getattr(self, f'c_{command[0].lower()}', False):
                     try:
-                        getattr(self, f'c_{command[0].lower()}')(
-                            command[1].strip() if len(command) > 1 else False)
+                        getattr(self, f'c_{command[0].lower()}')(command[1].strip() if len(command) > 1 else False)
                     except Exception as e:
                         self.console.print(e)
                 else:
@@ -158,16 +154,15 @@ class TUI:
     def startup_console(self):
         if 'WINDIR' in os.environ and 'WT_SESSION' not in os.environ and 'ALACRITTY_LOG' not in os.environ:
             set_terminal_size(250, 75)
-            windll.kernel32.SetConsoleScreenBufferSize(
-                windll.kernel32.GetStdHandle(-11), wintypes._COORD(100, 200))
+            windll.kernel32.SetConsoleScreenBufferSize(windll.kernel32.GetStdHandle(-11), wintypes._COORD(100, 200))
             self.console = Console(width=250)
         else:
             self.console = Console()
 
-    # | | ___   __ _  __| | ___  __| |
-    # | |/ _ \ / _` |/ _` |/ _ \/ _` |
-    # | | (_) | (_| | (_| |  __/ (_| |
-    # |_|\___/ \__,_|\__,_|\___|\__,_|
+    ####  | | ___   __ _  __| | ___  __| |
+    ####  | |/ _ \ / _` |/ _` |/ _ \/ _` |
+    ####  | | (_) | (_| | (_| |  __/ (_| |
+    ####  |_|\___/ \__,_|\__,_|\___|\__,_|
 
     def update(self):
         # items
@@ -176,12 +171,12 @@ class TUI:
 
         self.console.print('updating Attributes')
         CharUtils.update_attributes(self.character, item_buffs)
-
+            
         self.console.print('updating modifiers')
         for i in range(len(Enums.sizes)):
             if Enums.sizes[i] == self.character.size:
                 self.character.size_mod = Enums.size_mods[i]
-
+        
         self.console.print('updating AC')
         CharUtils.update_ac(self.character)
 
@@ -190,13 +185,10 @@ class TUI:
 
         # update bab/cmb/cmd
         if self.character.cmb_mod == 'strength':
-            self.character.cmb = self.character.bab + \
-                self.character.strength.mod + self.character.size_mod
+            self.character.cmb = self.character.bab + self.character.strength.mod + self.character.size_mod
         if self.character.cmb_mod == 'dexterity':
-            self.character.cmb = self.character.bab + \
-                self.character.dexterity.mod + self.character.size_mod
-        self.character.cmd = 10 + self.character.bab + self.character.strength.mod + \
-            self.character.dexterity.mod + self.character.size_mod
+            self.character.cmb = self.character.bab + self.character.dexterity.mod + self.character.size_mod
+        self.character.cmd = 10 + self.character.bab + self.character.strength.mod + self.character.dexterity.mod + self.character.size_mod
 
         self.console.print('updating skills')
         CharUtils.update_skills(self.character, item_buffs)
@@ -219,8 +211,7 @@ class TUI:
             self.console.print('updating spells')
             CharUtils.update_spells(self.character, bonus_spells)
         clear()
-        self.console.print(Rule(
-            f'[bold red]{self.character.name}[/bold red] the [bold green]{Utils.get_number_output(self.character.level)}[/bold green] level [bold blue]{self.character.class_}[/bold blue]'))
+        self.console.print(Rule(f'[bold red]{self.character.name}[/bold red] the [bold green]{Utils.get_number_output(self.character.level)}[/bold green] level [bold blue]{self.character.class_}[/bold blue]'))
         self.character.changed = False
 
     def l_main_output(self):
@@ -228,72 +219,57 @@ class TUI:
         save_table = Table(box=box.ROUNDED, title='SAVES')
         grid = Table.grid(expand=True)
         panel_grid = Table.grid()
-        panel_grid.add_column(f'', justify='center',
-                              style='white', no_wrap=True)
-        panel_grid.add_row(Panel.fit(f'[red]{self.character.hp}[/red]/{self.character.max_hp}', title='HP'),
-                           Panel.fit(f'{self.character.bab}', title='BAB'),
-                           Panel.fit(f'{self.character.cmb}', title='CMB'),
-                           Panel.fit(f'{self.character.cmd}', title='CMD')
-                           )
+        panel_grid.add_column(f'', justify='center',style='white',no_wrap=True)
+        panel_grid.add_row(Panel.fit(f'[red]{self.character.hp}[/red]/{self.character.max_hp}',title='HP'),
+                            Panel.fit(f'{self.character.bab}', title='BAB'), 
+                            Panel.fit(f'{self.character.cmb}', title='CMB'), 
+                            Panel.fit(f'{self.character.cmd}', title='CMD')
+        )
         panel_grid.add_row(Panel.fit(f'{self.character.ac}', title='AC'),
-                           Panel.fit(f'{self.character.touchac}',
-                                     title='Touch AC'),
-                           Panel.fit(f'{self.character.ffac}', title='FF AC')
-                           )
+                            Panel.fit(f'{self.character.touchac}', title='Touch AC'),
+                            Panel.fit(f'{self.character.ffac}', title='FF AC')
+        )
 
-        attr_table.add_column(f'Attribute', justify='center',
-                              style='bright_red', no_wrap=True)
-        attr_table.add_column(f'Value', justify='center',
-                              style='cyan', no_wrap=True)
-        attr_table.add_column(f'Mod', justify='center',
-                              style='green', no_wrap=True)
+        attr_table.add_column(f'Attribute', justify='center', style='bright_red', no_wrap=True)
+        attr_table.add_column(f'Value', justify='center', style='cyan', no_wrap=True)
+        attr_table.add_column(f'Mod', justify='center', style='green', no_wrap=True)
         for attr in self.character.attr_list:
             attr_table.add_row(f'{attr.name}', f'{attr.total}', f'{attr.mod}')
 
-        save_table.add_column(f'Save', justify='center',
-                              style='bright_red', no_wrap=True)
-        save_table.add_column(f'Value', justify='center',
-                              style='cyan', no_wrap=True)
+        save_table.add_column(f'Save', justify='center', style='bright_red', no_wrap=True)
+        save_table.add_column(f'Value', justify='center', style='cyan', no_wrap=True)
         for save in self.character.save_list:
             save_table.add_row(f'{save.name}', f'{save.total}')
         grid.add_column(justify='center')
         grid.add_column(justify='center')
         skill_table = Table(box=box.ROUNDED, title='SKILLS')
-        skill_table.add_column('Skill', justify='center',
-                               style='bright_red', no_wrap=True)
-        skill_table.add_column('Rank', justify='center',
-                               style='cyan', no_wrap=True)
+        skill_table.add_column('Skill', justify='center', style='bright_red', no_wrap=True)
+        skill_table.add_column('Rank', justify='center', style='cyan', no_wrap=True)
         for skill in self.character.skill_list:
             skill_table.add_row(f'{skill.name}', f'{skill.total}')
         if self.character.spell_list:
             spell_table = Table(box=box.ROUNDED, title='SPELLS')
-            spell_table.add_column(
-                f'Level', justify='center', style='bright_red', no_wrap=True)
-            spell_table.add_column(
-                f'Save', justify='center', style='cyan', no_wrap=True)
-            spell_table.add_column(
-                f'Remaining', justify='center', style='green', no_wrap=True)
+            spell_table.add_column(f'Level', justify='center', style='bright_red', no_wrap=True)
+            spell_table.add_column(f'Save', justify='center', style='cyan', no_wrap=True)
+            spell_table.add_column(f'Remaining', justify='center', style='green', no_wrap=True)
             for row in self.character.spell_list:
                 if row.slots > 0:
-                    spell_table.add_row(
-                        f'{row.level}', f'{row.save}', f'{row.remaining}/{row.slots}')
+                    spell_table.add_row(f'{row.level}', f'{row.save}', f'{row.remaining}/{row.slots}')
             grid.add_column(justify='center')
-            grid.add_row(panel_grid, attr_table, save_table,
-                         skill_table, spell_table)
+            grid.add_row(panel_grid, attr_table, save_table, skill_table, spell_table)
         else:
             grid.add_row(panel_grid, attr_table, save_table, skill_table)
         self.console.print(grid)
         self.last_output_state = 'main'
 
-    # ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___
-    # / __/ _ \| '_ ` _ \| '_ ` _ \ / _` | '_ \ / _` / __|
-    # | (_| (_) | | | | | | | | | | | (_| | | | | (_| \__ \
-    # \___\___/|_| |_| |_|_| |_| |_|\__,_|_| |_|\__,_|___/
+    ####    ___ ___  _ __ ___  _ __ ___   __ _ _ __   __| |___
+    ####   / __/ _ \| '_ ` _ \| '_ ` _ \ / _` | '_ \ / _` / __|
+    ####  | (_| (_) | | | | | | | | | | | (_| | | | | (_| \__ \
+    ####   \___\___/|_| |_| |_|_| |_| |_|\__,_|_| |_|\__,_|___/
 
     # pre load
     def c_help(self, _):
-        self.console.print(
-            f'[bold blue]Press tab to autocomplete options at any menu. you may create or load a sheet, options change after load.[/bold blue]')
+        self.console.print(f'[bold blue]Press tab to autocomplete options at any menu. you may create or load a sheet, options change after load.[/bold blue]')
 
     def c_exit(self, _):
         if Utils.str2bool(prompt('Are you sure you want to quit > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
@@ -309,10 +285,8 @@ class TUI:
         if sheets_path == []:
             self.console.print('No sheets to load')
             return
-        sheet_to_load = prompt('which sheet should we load? > ', completer=WordCompleter(
-            sheets_path), validator=WordValidator(sheets_path))
-        sheet_to_load = Path(Config.sheets_path, sheet_to_load,
-                             f'CRIT{sheet_to_load}.toml'.replace(' ', '_'))
+        sheet_to_load = prompt('which sheet should we load? > ', completer=WordCompleter(sheets_path), validator=WordValidator(sheets_path))
+        sheet_to_load = Path(Config.sheets_path, sheet_to_load, f'CRIT{sheet_to_load}.toml'.replace(' ', '_'))
         self.console.print('get character')
         self.character = TomlParser.load_character(sheet_to_load)
         self.console.print('setup attributes')
@@ -322,10 +296,11 @@ class TUI:
         self.first_update = False
         self.main_loop()
 
-    # _ __ ___   __ _(_)_ __   | | ___   ___  _ __
-    # | '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \
-    # | | | | | | (_| | | | | | | | (_) | (_) | |_) |
-    # |_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/
+    #### _ __ ___   __ _(_)_ __   | | ___   ___  _ __
+    ####| '_ ` _ \ / _` | | '_ \  | |/ _ \ / _ \| '_ \
+    ####| | | | | | (_| | | | | | | | (_) | (_) | |_) |
+    ####|_| |_| |_|\__,_|_|_| |_| |_|\___/ \___/| .__/
+    ####                                        |_|
 
     def main_loop(self):
         load_commands(self.character, self.session, self.console)
@@ -336,10 +311,10 @@ class TUI:
                     self.update()
                     self.l_main_output()
                 user_input = self.session.prompt(HTML(f'<ansibrightgreen>{self.character.name} > </ansibrightgreen> '),
-                                                 completer=DnDCompleter(
+                completer=DnDCompleter(
                     commands=self.character.commands, ignore_case=True, match_middle=False
                 ),
-                    auto_suggest=AutoSuggestFromHistory(),
+                auto_suggest=AutoSuggestFromHistory(),
                 )
                 if not user_input:
                     continue
@@ -358,6 +333,7 @@ class TUI:
                 pass
             except Exception as e:
                 traceback.print_exc()
+
 
 
 if __name__ == '__main__':
