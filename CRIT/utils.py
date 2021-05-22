@@ -217,6 +217,8 @@ class Utils:
                     char_data['usr'] = {}
                     # create empty feats space
                     char_data['feats'] = []
+                    # create cmb mod
+                    char_data['cmb_mod'] = 'strength'
 
                     really = True
                     if os.path.isfile(Path(Config.sheets_path, char_name, f'CRIT{char_name}.toml'.replace(' ', '_'))):
