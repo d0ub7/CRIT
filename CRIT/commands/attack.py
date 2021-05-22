@@ -12,6 +12,7 @@ class Attack(Command):
 
     keywords = ['attack']
     help_text = '''{keyword}
+{divider}
 Summary: Change the character's attacks
 
 Usage: {keyword} <verb>

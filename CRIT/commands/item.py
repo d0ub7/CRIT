@@ -10,6 +10,7 @@ class Item(Command):
 
     keywords = ['item']
     help_text = '''{keyword}
+{divider}
 Summary: Change the character's items
 
 Usage: {keyword} <verb>

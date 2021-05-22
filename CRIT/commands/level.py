@@ -11,6 +11,7 @@ class Level(Command):
 
     keywords = ['level']
     help_text = '''{keyword}
+{divider}
 Summary: Modify level of character
 
 Usage: {keyword} <integer> between 1-20

@@ -10,6 +10,7 @@ class Feat(Command):
 
     keywords = ['feat']
     help_text = '''{keyword}
+{divider}
 Summary: Modify list of feats
 
 Usage: {keyword} <verb> <Feat name>

@@ -10,6 +10,7 @@ class Weapon(Command):
 
     keywords = ['weapon']
     help_text = '''{keyword}
+{divider}
 Summary: Change the character's weapons
 
 Usage: {keyword} <verb>
