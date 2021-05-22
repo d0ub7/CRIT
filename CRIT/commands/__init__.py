@@ -33,6 +33,7 @@ class Command:
         if help_text:
             divider = '-' * len(keyword)
             print(help_text.format(**locals()).strip())
+
         else:
             print(f'No help text available for: {keyword}')
 
@@ -45,6 +46,7 @@ class Command:
         while data is None:
             if default is not None:
                 data = self.session.prompt(f'{text} [{default}]: ').strip()
+
             else:
                 data = self.session.prompt(f'{text}: ').strip()
 
@@ -60,8 +62,10 @@ class Command:
 def convert_to_int(value):
     try:
         value = int(value)
+
     except ValueError:
         value = None
+
     return value
 
 
@@ -69,8 +73,11 @@ def convert_to_oxford_comma_string(seq):
     seq_length = len(seq)
     if seq_length == 0:
         return ''
+
     elif seq_length == 1:
         return seq[0]
+
     elif seq_length == 2:
         return ' and '.join(seq)
+
     return ', '.join(seq[:-1]) + f', and {seq[-1]}'

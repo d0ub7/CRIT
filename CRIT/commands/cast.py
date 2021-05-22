@@ -31,6 +31,7 @@ Examples:
         for spell in self.character.spell_list:
             if spell.base != 0:
                 spell_list.append(int(spell.level))
+
         min_level = min(spell_list)
         max_level = max(spell_list)
 
@@ -38,7 +39,10 @@ Examples:
         spell_level = -1
         if not args:
             while spell_level not in range(min_level, max_level+1):
-                spell_level = Utils.str2int(prompt(f'what level spell between {min_level} and {max_level}? > ', validator=NumberValidator()))
+                spell_level = Utils.str2int(prompt(f'what level spell between {min_level} and {max_level}? > ', 
+                        validator=NumberValidator()
+                ))
+
             self.cast(spell_level)
             return
 
@@ -50,7 +54,7 @@ Examples:
         # if we didn't bounce them back
         if args[0].isdigit():
             self.console.print(f'[bold red]can\'t cast {Utils.get_number_output(spell.level)} level spells[/bold red]')
-        
+
         return
 
     def cast(self, spell_level):
@@ -59,6 +63,7 @@ Examples:
                 if spell.remaining > 0:
                     spell.remaining -= 1
                     self.character.changed = True
+
                 else:
                     self.console.print(f'[bold red]out of {Utils.get_number_output(spell.level)} level spells[/bold red]')
         

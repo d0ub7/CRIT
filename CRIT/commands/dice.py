@@ -23,11 +23,14 @@ Examples:
     def do_command(self, *args):
         if not args:
             self.console.print('enter a dice expression ex: 1d20+2')
+
         results = []
         for dice_expr in args:
             try:
                 results.append(str(roll_dice_expr(dice_expr)))
+
             except ValueError:
                 print(f'Invalid dice expression: {dice_expr}')
                 return
+
         print(', '.join(results))

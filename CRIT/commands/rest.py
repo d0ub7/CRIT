@@ -24,4 +24,5 @@ Examples:
         if self.character.spell_list:
             for spell in self.character.spell_list:
                 spell.remaining = spell.slots
+
         self.character.changed = True

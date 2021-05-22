@@ -24,5 +24,9 @@ Examples:
 '''
 
     def do_command(self, *args):
-        if Utils.str2bool(prompt('Are you sure you want to quit > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
+        if Utils.str2bool(prompt('Are you sure you want to quit > ', 
+                completer=WordCompleter(Enums.bool_choices), 
+                validator=WordValidator(Enums.bool_choices)
+        )):
+
             sys.exit(0)

@@ -27,7 +27,11 @@ Examples:
 
     def do_command(self, *args): #TODO add proper args support
         mod_options = ['list', 'add', 'remove', 'use']
-        modify_option = prompt(f'{mod_options} > ', completer=WordCompleter(mod_options), validator=WordValidator(mod_options))
+        modify_option = prompt(f'{mod_options} > ', 
+                        completer=WordCompleter(mod_options), 
+                        validator=WordValidator(mod_options)
+        )
+
         if modify_option == 'list':
             self.list_attacks(self.character, self.console)
 
@@ -45,24 +49,48 @@ Examples:
         for weapon in character.weapon_list:
             weapon_list.append(weapon.name)
         attack_name = prompt(f'Name of Attack? > ')
-        weapon_to_use = prompt(f'Attack with which weapon? > ', completer=WordCompleter(weapon_list), validator=WordValidator(weapon_list))
+        weapon_to_use = prompt(f'Attack with which weapon? > ', 
+                        completer=WordCompleter(weapon_list), 
+                        validator=WordValidator(weapon_list)
+        )
 
         other_bonus_list = []
         for i in range(-99,99):
                 other_bonus_list.append(str(i))
 
-        atk_mod_to_use = prompt(f'Which attack mod should we use? > ', completer=WordCompleter(Enums.attributes), validator=WordValidator(Enums.attributes))
-        other_atk_mod_prompt = prompt(f'any other mods to attack? > ', completer=WordCompleter(Enums.attributes + ['no']), validator=WordValidator(Enums.attributes + ['no']))
+        atk_mod_to_use = prompt(f'Which attack mod should we use? > ', 
+                        completer=WordCompleter(Enums.attributes), 
+                        validator=WordValidator(Enums.attributes)
+        )
+
+        other_atk_mod_prompt = prompt(f'any other mods to attack? > ', 
+                            completer=WordCompleter(Enums.attributes + ['no']), 
+                            validator=WordValidator(Enums.attributes + ['no'])
+        )
+
         other_atk_mod_prompt = other_atk_mod_prompt if other_atk_mod_prompt != 'no' else None
         atk_mod = [atk_mod_to_use, other_atk_mod_prompt] if other_atk_mod_prompt else [atk_mod_to_use]
-        other_atk_bonus = prompt(f'any other bonuses to attack? > ', completer=WordCompleter(other_bonus_list), validator=WordValidator(other_bonus_list))
+        other_atk_bonus = prompt(f'any other bonuses to attack? > ', 
+                        completer=WordCompleter(other_bonus_list), 
+                        validator=WordValidator(other_bonus_list)
+        )
 
-        dmg_mod_to_use = prompt(f'Which damage mod should we use? > ', completer=WordCompleter(Enums.attributes), validator=WordValidator(Enums.attributes))
-        other_dmg_mod_prompt =  prompt(f'any other mods to damage? > ', completer=WordCompleter(Enums.attributes + ['no']), validator=WordValidator(Enums.attributes + ['no']))
+        dmg_mod_to_use = prompt(f'Which damage mod should we use? > ', 
+                        completer=WordCompleter(Enums.attributes), 
+                        validator=WordValidator(Enums.attributes)
+        )
+
+        other_dmg_mod_prompt =  prompt(f'any other mods to damage? > ', 
+                                completer=WordCompleter(Enums.attributes + ['no']), 
+                                validator=WordValidator(Enums.attributes + ['no'])
+        )
+
         other_dmg_mod_prompt = other_dmg_mod_prompt if other_dmg_mod_prompt != 'no' else None
         dmg_mod = [dmg_mod_to_use, other_dmg_mod_prompt] if other_dmg_mod_prompt else [dmg_mod_to_use]
-        other_dmg_bonus =  prompt(f'any other bonuses to damage? > ', completer=WordCompleter(other_bonus_list), validator=WordValidator(other_bonus_list))
-
+        other_dmg_bonus =  prompt(f'any other bonuses to damage? > ', 
+                        completer=WordCompleter(other_bonus_list), 
+                        validator=WordValidator(other_bonus_list)
+        )
 
         new_attack = models.Attack(name = attack_name
                     , weapon = weapon_to_use
@@ -71,8 +99,12 @@ Examples:
                     , damage_mod = dmg_mod
                     , bonus_damage = other_dmg_bonus
         )
+
         console.print(new_attack)
-        if Utils.str2bool(prompt(f'create? > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
+        if Utils.str2bool(prompt(f'create? > ', 
+                        completer=WordCompleter(Enums.bool_choices), 
+                        validator=WordValidator(Enums.bool_choices)
+        )):
             character.attack_list.append(new_attack)
 
     def list_attacks(self, character, console):
@@ -84,7 +116,10 @@ Examples:
         for attack in character.attack_list:
             attack_list.append(attack.name)
         
-        attack_to_remove = prompt('remove which attack > ', completer=WordCompleter(attack_list), validator=WordValidator(attack_list))
+        attack_to_remove = prompt('remove which attack > ', 
+                        completer=WordCompleter(attack_list), 
+                        validator=WordValidator(attack_list)
+        )
 
         for attack in character.attack_list:
             if attack.name == attack_to_remove:
@@ -95,8 +130,11 @@ Examples:
         attack_list = []
         for attack in character.attack_list:
             attack_list.append(attack.name)
-        attack_to_use = prompt(f'Attack with which weapon? > ', completer=WordCompleter(attack_list), validator=WordValidator(attack_list))
-        ## Weapon(name='test', damage={'bludgeoning': {'dice': '1d8'}}, bonus_damage={'acid': {'dice': '1d4'}})
+        attack_to_use = prompt(f'Attack with which weapon? > ', 
+                        completer=WordCompleter(attack_list), 
+                        validator=WordValidator(attack_list)
+        )
+
         for attack in character.attack_list:
             if attack_to_use == attack.name:
                 attack_to_use = attack
@@ -116,7 +154,6 @@ Examples:
         for k, v in weapon_to_use.bonus_damage.items():
             bonus_damage[k] = v['dice']
 
-        ## Attack(name='test', weapon='test', attack_mod=['strength'], bonus_attack='5', damage_mod=['strength'], bonus_damage='5')
         final_atk = character.bab
         for attribute in character.attr_list:
             if attribute.name in attack_to_use.attack_mod:
@@ -141,9 +178,7 @@ Examples:
             for k, v in bonus_damage.items():
                 console.print(f'{attack_to_use.name} bonus {k} damage')
                 console.print(f'/r {v}')
+
             full_attack_counter -= 5
+
         self.console.print(Rule(f'[bold red]End of attack string[/bold red]'))
-            
-
-
-        

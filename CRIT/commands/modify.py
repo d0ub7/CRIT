@@ -1,3 +1,4 @@
+from prompt_toolkit import completion
 from prompt_toolkit.shortcuts.prompt import E
 from CRIT.commands import Command
 from prompt_toolkit import prompt
@@ -25,38 +26,75 @@ Examples:
 
     def do_command(self, *args): #TODO add proper args support
         if not args:
-            mod_list = ['maxhp', 'skill', 'attribute']
-            modify_option = prompt('modify > ', completer=WordCompleter(mod_list), validator=WordValidator(mod_list))
+            mod_list = ['maxhp', 'skill', 'attribute', 'save', 'cmb_mod']
+            modify_option = prompt('modify > ', 
+                    completer=WordCompleter(mod_list), 
+                    validator=WordValidator(mod_list)
+            )
+
         else:
             try:
                 modify_option = args
+
             except:
                 pass
-        if modify_option == 'user':
-            self.modify_user(self.character, self.console)
+
         if modify_option == 'maxhp':
             self.modify_maxhp(self.character)
+
         if modify_option == 'skill':
             self.modify_skills(self.character)
+
         if modify_option == 'attribute':
             self.modify_attribute(self.character)
         
+        if modify_option == 'save':
+            self.modify_saves(self.character)
+            
+        if modify_option == 'cmb_mod':
+            new_cmb_mod = prompt(f'cmb mod is currently {self.character.cmb_mod}, what should it be? > ',
+                    completer=WordCompleter(Enums.attributes),
+                    validator=WordValidator(Enums.attributes)
+            )
+
+            self.character.cmb_mod = new_cmb_mod
+            self.character.changed = True
+        
     def modify_attribute(self, character):
-        attr_to_modify = prompt('which attribute? > ', completer=WordCompleter(Enums.attributes), validator=WordValidator(Enums.attributes))
+        attr_to_modify = prompt('which attribute? > ', 
+                completer=WordCompleter(Enums.attributes), 
+                validator=WordValidator(Enums.attributes)
+        )
+
         for attr in character.attr_list:
             if attr.name == attr_to_modify:
                 opt_list = ['base', 'bonus']
-                attr_option = prompt(f'current attribute base is {attr.base}, bonus is {attr.bonus}, for a total of {attr.total}. change base or bonus? > ', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
+                attr_option = prompt(f'current attribute base is {attr.base}, bonus is {attr.bonus}, for a total of {attr.total}. change base or bonus? > ', 
+                        completer=WordCompleter(opt_list), 
+                        validator=WordValidator(opt_list)
+                )
+
                 if attr_option == 'base':
-                    new_base = Utils.str2int(prompt('what is the new attribute base > ', validator=NumberValidator()))
+                    new_base = Utils.str2int(prompt('what is the new attribute base > ', 
+                            validator=NumberValidator()
+                    ))
+
                     attr.base = new_base
+
                 if attr_option == 'bonus':
-                    new_bonus = Utils.str2int(prompt('what is the new attribute bonus > ', validator=NumberValidator()))
+                    new_bonus = Utils.str2int(prompt('what is the new attribute bonus > ', 
+                            validator=NumberValidator()
+                    ))
+
                     attr.bonus = new_bonus
+
         self.character.changed = True
 
     def modify_maxhp(self, character):
-        maxhp = Utils.str2int(prompt('new max hp? > ', validator=NumberValidator()))
+        maxhp = Utils.str2int(prompt('new max hp? > ', 
+                validator=NumberValidator()
+        ))
+
         character.max_hp = maxhp
         self.character.changed = True
 
@@ -64,15 +102,53 @@ Examples:
         skill_list = []
         for skill in character.skill_list:
             skill_list.append(skill.name)
-        skill_to_modify = prompt('what skill? > ', completer=WordCompleter(skill_list), validator=WordValidator(skill_list))
+
+        skill_to_modify = prompt('what skill? > ', 
+                completer=WordCompleter(skill_list), 
+                validator=WordValidator(skill_list)
+        )
+            
         for skill in character.skill_list:
             if skill.name == skill_to_modify:
                 opt_list = ['rank', 'bonus']
-                skill_option = prompt(f'current skill rank is {skill.rank}, bonus is {skill.bonus}, for a total of {skill.total}. change rank or bonus? > ', completer=WordCompleter(opt_list), validator=WordValidator(opt_list))
+                skill_option = prompt(f'current skill rank is {skill.rank}, bonus is {skill.bonus}, for a total of {skill.total}. change rank or bonus? > ', 
+                        completer=WordCompleter(opt_list), 
+                        validator=WordValidator(opt_list)
+                )
+
                 if skill_option == 'rank':
-                    new_rank = Utils.str2int(prompt('what is the new skill rank? > ', validator=NumberValidator()))
+                    new_rank = Utils.str2int(prompt('what is the new skill rank? > ', 
+                            validator=NumberValidator()
+                    ))
+
                     skill.rank = new_rank
+
                 if skill_option == 'bonus':
-                    new_bonus = Utils.str2int(prompt('what is the new skill bonus? > ', validator=NumberValidator()))
+                    new_bonus = Utils.str2int(prompt('what is the new skill bonus? > ', 
+                            validator=NumberValidator()
+                    ))
+
                     skill.bonus = new_bonus
+
+        self.character.changed = True
+    
+    def modify_saves(self, character):
+        saves_list = []
+        for sav in character.save_list:
+            saves_list.append(sav.name)
+        
+        save_to_modify = prompt('what save? > ',
+                completer=WordCompleter(saves_list),
+                validator=WordValidator(saves_list)
+        )
+
+        for sav in character.save_list:
+            if sav.name == save_to_modify:
+                print(f'current save base is {sav.base}, bonus is {sav.bonus}, for a total of {sav.total}')
+                new_bonus = Utils.str2int(prompt('what is the new save bonus? > ',
+                        validator=NumberValidator()
+                ))
+                
+                sav.bonus = new_bonus
+
         self.character.changed = True

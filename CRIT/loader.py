@@ -42,12 +42,14 @@ def _iter_namespace(nsp):
     prefix = nsp.__name__ + '.'
     for pkg in pkgutil.iter_modules(nsp.__path__, prefix):
         yield pkg[1]  # pkg is (finder, name, ispkg)
+
     # special handling when the package is bundled with PyInstaller
     # See https://github.com/pyinstaller/pyinstaller/issues/1905
     toc = set()  # table of content
     for importer in pkgutil.iter_importers(nsp.__name__.partition('.')[0]):
         if hasattr(importer, 'toc'):
             toc |= importer.toc
+
     for name in toc:
         if name.startswith(prefix):
             yield name

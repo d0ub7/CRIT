@@ -81,6 +81,7 @@ class DnDCompleter(Completer):
 
             if self.match_middle:
                 return word_before_cursor in word
+
             else:
                 return word.startswith(word_before_cursor)
 
@@ -126,7 +127,9 @@ class TUI:
         try:
             with open('PermissionTest', 'w') as _:
                 pass
+
             os.remove('PermissionTest')
+
         except IOError:
             self.console.print('[bold red]Character Resources In Terminal doesn\'t have write rights for the current directory.\n'
                                'Try starting it with administrative privileges.[/bold red]\n')
@@ -135,18 +138,25 @@ class TUI:
 
         while True:
             try:
-                command = self.session.prompt(HTML('<ansibrightgreen>CRIT></ansibrightgreen> '), completer=self.completer)
+                command = self.session.prompt(HTML('<ansibrightgreen>CRIT></ansibrightgreen> '), 
+                        completer=self.completer
+                ) 
+
             except KeyboardInterrupt:
                 continue
+
             except EOFError:
                 break
+
             else:
                 command = command.split(' ', 1)
                 if getattr(self, f'c_{command[0].lower()}', False):
                     try:
                         getattr(self, f'c_{command[0].lower()}')(command[1].strip() if len(command) > 1 else False)
+
                     except Exception as e:
                         self.console.print(e)
+
                 else:
                     self.console.print('Command not found.')
 
@@ -155,6 +165,7 @@ class TUI:
             set_terminal_size(250, 75)
             windll.kernel32.SetConsoleScreenBufferSize(windll.kernel32.GetStdHandle(-11), wintypes._COORD(100, 200))
             self.console = Console(width=250)
+
         else:
             self.console = Console()
 
@@ -166,10 +177,10 @@ class TUI:
     def update(self):
         # items
         self.console.print('get item buffs')
-        item_buffs = CharUtils.get_unique_item_buffs(self.character)
+        buffs = CharUtils.get_unique_buffs(self.character)
 
         self.console.print('updating Attributes')
-        CharUtils.update_attributes(self.character, item_buffs)
+        CharUtils.update_attributes(self.character, buffs)
             
         self.console.print('updating modifiers')
         for i in range(len(Enums.sizes)):
@@ -180,25 +191,24 @@ class TUI:
         CharUtils.update_ac(self.character)
 
         self.console.print('updating saves')
-        CharUtils.update_saves(self.character, item_buffs)
+        CharUtils.update_saves(self.character, buffs)
 
         # update bab/cmb/cmd
-        if self.character.cmb_mod == 'strength':
-            self.character.cmb = self.character.bab + self.character.strength.mod + self.character.size_mod
-        if self.character.cmb_mod == 'dexterity':
-            self.character.cmb = self.character.bab + self.character.dexterity.mod + self.character.size_mod
-        self.character.cmd = 10 + self.character.bab + self.character.strength.mod + self.character.dexterity.mod + self.character.size_mod
+        CharUtils.update_cmx(self.character, buffs)
 
         self.console.print('updating skills')
-        CharUtils.update_skills(self.character, item_buffs)
+        CharUtils.update_skills(self.character, buffs)
 
         self.console.print('updating casting mod')
         if self.character.casting_stat == 'intelligence':
             self.character.casting_mod = self.character.intelligence.mod
+
         elif self.character.casting_stat == 'wisdom':
             self.character.casting_mod = self.character.wisdom.mod
+
         elif self.character.casting_stat == 'charisma':
             self.character.casting_mod = self.character.charisma.mod
+
         else:
             self.character.casting_mod = None
 
@@ -209,6 +219,7 @@ class TUI:
 
             self.console.print('updating spells')
             CharUtils.update_spells(self.character, bonus_spells)
+
         clear()
         self.console.print(Rule(f'[bold red]{self.character.name}[/bold red] the [bold green]{Utils.get_number_output(self.character.level)}[/bold green] level [bold blue]{self.character.class_}[/bold blue]'))
         self.character.changed = False
@@ -224,6 +235,7 @@ class TUI:
                             Panel.fit(f'{self.character.cmb}', title='CMB'), 
                             Panel.fit(f'{self.character.cmd}', title='CMD')
         )
+
         panel_grid.add_row(Panel.fit(f'{self.character.ac}', title='AC'),
                             Panel.fit(f'{self.character.touchac}', title='Touch AC'),
                             Panel.fit(f'{self.character.ffac}', title='FF AC')
@@ -239,6 +251,7 @@ class TUI:
         save_table.add_column(f'Value', justify='center', style='cyan', no_wrap=True)
         for save in self.character.save_list:
             save_table.add_row(f'{save.name}', f'{save.total}')
+
         grid.add_column(justify='center')
         grid.add_column(justify='center')
         skill_table = Table(box=box.ROUNDED, title='SKILLS')
@@ -246,6 +259,7 @@ class TUI:
         skill_table.add_column('Rank', justify='center', style='cyan', no_wrap=True)
         for skill in self.character.skill_list:
             skill_table.add_row(f'{skill.name}', f'{skill.total}')
+
         if self.character.spell_list:
             spell_table = Table(box=box.ROUNDED, title='SPELLS')
             spell_table.add_column(f'Level', justify='center', style='bright_red', no_wrap=True)
@@ -254,10 +268,13 @@ class TUI:
             for row in self.character.spell_list:
                 if row.slots > 0:
                     spell_table.add_row(f'{row.level}', f'{row.save}', f'{row.remaining}/{row.slots}')
+
             grid.add_column(justify='center')
             grid.add_row(panel_grid, attr_table, save_table, skill_table, spell_table)
+
         else:
             grid.add_row(panel_grid, attr_table, save_table, skill_table)
+
         self.console.print(grid)
         self.last_output_state = 'main'
 
@@ -271,7 +288,9 @@ class TUI:
         self.console.print(f'[bold blue]Press tab to autocomplete options at any menu. you may create or load a sheet, options change after load.[/bold blue]')
 
     def c_exit(self, _):
-        if Utils.str2bool(prompt('Are you sure you want to quit > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
+        if Utils.str2bool(prompt('Are you sure you want to quit > ', 
+                        completer=WordCompleter(Enums.bool_choices), 
+                        validator=WordValidator(Enums.bool_choices))):
             sys.exit(0)
 
     def c_create(self, _):
@@ -280,11 +299,17 @@ class TUI:
     def c_load(self, _):
         if self.first_update == False:
             return
+
         sheets_path = Utils.get_options_from_dir(Config.sheets_path)
         if sheets_path == []:
             self.console.print('No sheets to load')
             return
-        sheet_to_load = prompt('which sheet should we load? > ', completer=WordCompleter(sheets_path), validator=WordValidator(sheets_path))
+
+        sheet_to_load = prompt('which sheet should we load? > ', 
+                        completer=WordCompleter(sheets_path), 
+                        validator=WordValidator(sheets_path)
+        )
+
         sheet_to_load = Path(Config.sheets_path, sheet_to_load, f'CRIT{sheet_to_load}.toml'.replace(' ', '_'))
         self.console.print('get character')
         self.character = TomlParser.load_character(sheet_to_load)
@@ -309,14 +334,17 @@ class TUI:
                 if self.character.changed:
                     self.update()
                     self.l_main_output()
-                user_input = self.session.prompt(HTML(f'<ansibrightgreen>{self.character.name} > </ansibrightgreen> '),
-                completer=DnDCompleter(
-                    commands=self.character.commands, ignore_case=True, match_middle=False
-                ),
-                auto_suggest=AutoSuggestFromHistory(),
+
+                user_input = self.session.prompt(HTML(f'<ansibrightgreen>{self.character.name} > </ansibrightgreen> '), 
+                    completer=DnDCompleter(
+                        commands=self.character.commands, ignore_case=True, match_middle=False
+                    ),
+                    auto_suggest=AutoSuggestFromHistory(),
                 )
+
                 if not user_input:
                     continue
+
                 else:
                     user_input = user_input.split()
 
@@ -328,8 +356,10 @@ class TUI:
                 command.do_command(*user_input[1:])
 
                 self.console.print()
+
             except (EOFError, KeyboardInterrupt):
                 pass
+
             except Exception as e:
                 traceback.print_exc()
 

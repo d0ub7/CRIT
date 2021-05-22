@@ -22,10 +22,13 @@ class Utils:
     def get_number_output(number):
         if number == 1:
             return('1st')
+
         elif number == 2:
             return('2nd')
+
         elif number == 3:
             return('3rd')
+
         else:
             return(f'{number}th')
 
@@ -38,8 +41,10 @@ class Utils:
         _list = []
         if not os.path.exists(path):
             os.mkdir(path)
+
         for elem in os.listdir(path):
             _list.append(elem.removesuffix('.toml').removesuffix('.json').removeprefix('CRIT'))
+
         return(_list)
 
     @staticmethod
@@ -50,30 +55,65 @@ class Utils:
         # Get Level
         #, type=clik.IntRange(1,20)
         lvl_list = [str(i+1) for i in range(20)]
-        char_level = Utils.str2int(prompt('What level is the character? > ', completer=WordCompleter(lvl_list), validator=WordValidator(lvl_list)))
+        char_level = Utils.str2int(prompt('What level is the character? > ', 
+                completer=WordCompleter(lvl_list), 
+                validator=WordValidator(lvl_list)
+        ))
 
         # Get Class
         class_list = Utils.get_options_from_dir(Path(Config.data_path, 'classes'))
-        char_class = prompt('What is the character\'s class > ', completer=WordCompleter(class_list), validator=WordValidator(class_list))
+        char_class = prompt('What is the character\'s class > ', 
+                completer=WordCompleter(class_list), 
+                validator=WordValidator(class_list)
+        )
 
         # Get Attributes
         console.print(Rule(f'[bold blue]What are the characters base attributes?,[/bold blue]'))
 
-        char_str = Utils.str2int(prompt('What is the character\'s strength > ', validator=NumberValidator()))
-        char_dex = Utils.str2int(prompt('What is the character\'s dexterity > ', validator=NumberValidator()))
-        char_con = Utils.str2int(prompt('What is the character\'s constitution > ', validator=NumberValidator()))
-        char_int = Utils.str2int(prompt('What is the character\'s intelligence > ', validator=NumberValidator()))
-        char_wis = Utils.str2int(prompt('What is the character\'s wisdom > ', validator=NumberValidator()))
-        char_cha = Utils.str2int(prompt('What is the character\'s charisma > ', validator=NumberValidator()))
-        char_hp =  Utils.str2int(prompt('What is the character\'s maximum HP > ', validator=NumberValidator()))
+        char_str = Utils.str2int(prompt('What is the character\'s strength > ', 
+                validator=NumberValidator()
+        ))
 
-        char_size = prompt('What size are you? > ', completer=WordCompleter(Enums.sizes), validator=WordValidator(Enums.sizes))
+        char_dex = Utils.str2int(prompt('What is the character\'s dexterity > ', 
+                validator=NumberValidator()
+        ))
+
+        char_con = Utils.str2int(prompt('What is the character\'s constitution > ', 
+                validator=NumberValidator()
+        ))
+
+        char_int = Utils.str2int(prompt('What is the character\'s intelligence > ', 
+                validator=NumberValidator()
+        ))
+
+        char_wis = Utils.str2int(prompt('What is the character\'s wisdom > ', 
+                validator=NumberValidator()
+        ))
+
+        char_cha = Utils.str2int(prompt('What is the character\'s charisma > ', 
+                validator=NumberValidator()
+        ))
+
+        char_hp =  Utils.str2int(prompt('What is the character\'s maximum HP > ', 
+                validator=NumberValidator()
+        ))
+
+        char_size = prompt('What size are you? > ', 
+                completer=WordCompleter(Enums.sizes), 
+                validator=WordValidator(Enums.sizes)
+        )
+
         # Get Skills
         skills_list = Utils.get_options_from_dir(Path(Config.data_path, 'skills'))
-        skills_type = prompt('What skills should we use? > ', completer=WordCompleter(skills_list), validator=WordValidator(skills_list))
+        skills_type = prompt('What skills should we use? > ', 
+                completer=WordCompleter(skills_list), 
+                validator=WordValidator(skills_list)
+        )
+
         if not os.path.isfile(Path(Config.data_path, 'skills', f'{skills_type}.toml')):
             console.print(f'[bold red]{skills_type} skills unsupported. Create it yourself![/bold red]')
             return
+
         console.print(f'[bold red]{char_name}[/bold red] the [bold green]{Utils.get_number_output(char_level)}[/bold green] level [bold blue]{char_class}[/bold blue]')
         char_table = Table(box=box.ROUNDED)
 
@@ -89,7 +129,11 @@ class Utils:
         console.print(char_table)
 
         # Generate Character
-        if Utils.str2bool(prompt(f'Should we create {char_name}? > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices))):
+        if Utils.str2bool(prompt(f'Should we create {char_name}? > ', 
+                completer=WordCompleter(Enums.bool_choices), 
+                validator=WordValidator(Enums.bool_choices)
+        )):
+
             with open(Path(Config.data_path, 'classes', f'{char_class}.toml'), 'r') as f:
                 try: 
                     class_config = toml.load(f)
@@ -120,12 +164,14 @@ class Utils:
                         , 'bonus': 0
                         , 'base': class_config['fortitude'][char_level-1]
                     }
+
                     char_data['saves']['reflex'] = {
                         'total': 0
                         , 'ability': 'dexterity'
                         , 'bonus': 0
                         , 'base': class_config['reflex'][char_level-1]
                     }
+
                     char_data['saves']['will'] = {
                         'total': 0
                         , 'ability': 'wisdom'
@@ -142,7 +188,10 @@ class Utils:
                             skills_config = toml.load(f)
                             char_data['skills_type'] = skills_type
                             for skil in skills_config['skills']:
-                                temp_ = prompt(f'How many ranks do you have in {skil}? > '.replace('_', ' '), validator=NumberValidator())
+                                temp_ = prompt(f'How many ranks do you have in {skil}? > '.replace('_', ' '), 
+                                        validator=NumberValidator()
+                                )
+
                                 class_ = True if skil in class_config['class_skills'] else False
                                 char_data['skills'][skil] = {
                                     'total': 0
@@ -161,7 +210,7 @@ class Utils:
                             , 'remaining': class_config['spells'][spell_level][char_level-1]
                             , 'base': class_config['spells'][spell_level][char_level-1]
                         }
-                    
+
                     # create empty item space
                     char_data['items'] = {}
                     # create empty usr space
@@ -171,18 +220,27 @@ class Utils:
 
                     really = True
                     if os.path.isfile(Path(Config.sheets_path, char_name, f'CRIT{char_name}.toml'.replace(' ', '_'))):
-                        really = Utils.str2bool(prompt(f'sheet for {char_name} exists, overwrite? > ', completer=WordCompleter(Enums.bool_choices), validator=WordValidator(Enums.bool_choices)))
+                        really = Utils.str2bool(prompt(f'sheet for {char_name} exists, overwrite? > ', 
+                                completer=WordCompleter(Enums.bool_choices), 
+                                validator=WordValidator(Enums.bool_choices)
+                        ))
+
                     if not really:
                         console.print(f'[bold red] NOT CREATING {char_name} [/bold red]')
                         return
+
                     else:
                         try:
                             os.makedirs(Path(Config.sheets_path, char_name))
+
                         except:
                             pass
+
                         with open(Path(Config.sheets_path, char_name, f'CRIT{char_name}.toml'.replace(' ', '_')), 'w+') as outfile:
                             toml.dump(char_data, outfile)
+
                         console.print(f'[bold green] CREATED {char_name} [/bold green]')
+
                 except Exception as e:
                     console.print(e)
                     raise RuntimeError
@@ -205,5 +263,7 @@ class Utils:
                 temp.add_column(key, justify='center',style='white',no_wrap=True)
                 for value in existing_data['usr'][key]:
                     temp.add_row(value)
+
                 grid.add_row(temp)
+
         console.print(grid)

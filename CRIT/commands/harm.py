@@ -20,13 +20,18 @@ Examples:
 
     def do_command(self, *args):
         if not args:
-            harm_value = Utils.str2int(prompt('How much did you take? > ', validator=NumberValidator()))
+            harm_value = Utils.str2int(prompt('How much did you take? > ', 
+                    validator=NumberValidator()
+            ))
+
         else:
             try:
                 harm_value = int(args[0])
                 print(harm_value)
+
             except:
                 self.console.print('please enter an int')
                 return
+
         self.character.hp -= harm_value
         self.character.changed = True

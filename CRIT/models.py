@@ -25,9 +25,14 @@ class Attribute:
     total: None
     bonus: None
     base: None
-    item: None
+    buff: None
     mod: None
 
+@dataclass
+class Buff:
+    name: None
+    active: None
+    bonus: None
 
 class Character:
     def __init__(self) -> None:
@@ -75,6 +80,7 @@ class Character:
         self.feat_list = []
         self.weapon_list = []
         self.attack_list = []
+        self.buff_list = []
 
         self.commands = {}
 
@@ -104,7 +110,7 @@ class Save:
     ability: None
     bonus: None
     base: None
-    item: None
+    buff: None
 
 
 @dataclass
@@ -115,7 +121,7 @@ class Skill:
     rank: None
     bonus: None
     class_: None
-    item: None
+    buff: None
 
 
 @dataclass
