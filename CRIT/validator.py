@@ -25,7 +25,8 @@ class NumberValidator(Validator):
                     break
 
             raise ValidationError(message='This input contains non-numeric characters',
-                                  cursor_position=i)
+                                  cursor_position=i
+            )
 
 class ItemValidator(Validator):
     def __init__(self, validation_list) -> None:

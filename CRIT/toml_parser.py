@@ -27,6 +27,12 @@ class TomlParser:
             character.cmb_mod = char_data['cmb_mod']
             character.casting_stat = char_data['casting_stat'] if 'casting_stat' in char_data else None
 
+            character.bab_progression = char_data['bab_progression']
+            character.fortitude_progression = char_data['fortitude_progression']
+            character.reflex_progression = char_data['reflex_progresion']
+            character.will_progression = char_data['will_progression']
+            character.class_skills = char_data['class_skills']
+
             if 'feats' in char_data:
                 for feat in char_data['feats']:
                     character.feat_list.append(feat)
@@ -78,6 +84,13 @@ class TomlParser:
             char_data['casting_stat'] = character.casting_stat
             char_data['size'] = character.size
             char_data['skills_type'] = character.skills_type
+
+
+            char_data['bab_progression'] = character.bab
+            char_data['fortitude_progression'] = character.fortitude_progression
+            char_data['reflex_progresion'] = character.reflex_progression
+            char_data['will_progression'] = character.will_progression
+            char_data['class_skills'] = character.class_skills
 
             char_data['attributes'] = {}
             for attr in character.attr_list:
@@ -139,4 +152,5 @@ class TomlParser:
                 sys.exit(0)
 
         except Exception as e:
+            print(e)
             raise RuntimeError
