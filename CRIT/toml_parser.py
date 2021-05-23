@@ -31,7 +31,6 @@ class TomlParser:
             character.fortitude_progression = char_data['fortitude_progression']
             character.reflex_progression = char_data['reflex_progresion']
             character.will_progression = char_data['will_progression']
-            character.class_skills = char_data['class_skills']
 
             if 'feats' in char_data:
                 for feat in char_data['feats']:
@@ -90,7 +89,6 @@ class TomlParser:
             char_data['fortitude_progression'] = character.fortitude_progression
             char_data['reflex_progresion'] = character.reflex_progression
             char_data['will_progression'] = character.will_progression
-            char_data['class_skills'] = character.class_skills
 
             char_data['attributes'] = {}
             for attr in character.attr_list:

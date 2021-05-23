@@ -150,7 +150,6 @@ class Utils:
                     char_data['fortitude_progression'] = class_config['fortitude']
                     char_data['reflex_progresion'] = class_config['reflex']
                     char_data['will_progression'] = class_config['will']
-                    char_data['class_skills'] = class_config['class_skills']
 
                     # Attributes
                     char_attr_list = [char_str, char_dex, char_con, char_int, char_wis, char_cha]

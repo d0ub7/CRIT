@@ -1,5 +1,3 @@
-from prompt_toolkit import completion
-from prompt_toolkit.shortcuts.prompt import E
 from CRIT.commands import Command
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
@@ -102,35 +100,81 @@ Examples:
         skill_list = []
         for skill in character.skill_list:
             skill_list.append(skill.name)
-
-        skill_to_modify = prompt('what skill? > ', 
-                completer=WordCompleter(skill_list), 
-                validator=WordValidator(skill_list)
-        )
             
-        for skill in character.skill_list:
-            if skill.name == skill_to_modify:
-                opt_list = ['rank', 'bonus']
-                skill_option = prompt(f'current skill rank is {skill.rank}, bonus is {skill.bonus}, for a total of {skill.total}. change rank or bonus? > ', 
-                        completer=WordCompleter(opt_list), 
-                        validator=WordValidator(opt_list)
+        skill_choice = prompt('modify class skills or an individual one? > ',
+                completer=WordCompleter(['class', 'individual']),
+                validator=WordValidator(['class', 'individual'])
+        )
+
+        if skill_choice == 'class':
+            class_skills = []
+
+            for skill in character.skill_list:
+                if skill.class_ == True:
+                    class_skills.append(skill.name)
+
+            add_or_remove = prompt('add or remove a class skill > ',
+                    completer=WordCompleter(['add', 'remove']),
+                    validator=WordValidator(['add', 'remove'])
+            )
+
+            if add_or_remove == 'add':
+                for skill in class_skills:
+                    skill_list.remove(skill)
+                skill_to_add = prompt('which skill should we add? > ',
+                        completer=WordCompleter(skill_list),
+                        validator=WordValidator(skill_list)
                 )
 
-                if skill_option == 'rank':
-                    new_rank = Utils.str2int(prompt('what is the new skill rank? > ', 
-                            validator=NumberValidator()
-                    ))
+                for skill in character.skill_list:
+                    if skill.name == skill_to_add:
+                        skill.class_ = True
 
-                    skill.rank = new_rank
 
-                if skill_option == 'bonus':
-                    new_bonus = Utils.str2int(prompt('what is the new skill bonus? > ', 
-                            validator=NumberValidator()
-                    ))
 
-                    skill.bonus = new_bonus
+            if add_or_remove == 'remove':
 
-        self.character.changed = True
+                skill_to_remove = prompt('which skill should we remove? > ',
+                        completer=WordCompleter(class_skills),
+                        validator=WordValidator(class_skills)
+                )
+
+                for skill in character.skill_list:
+                    if skill.name == skill_to_remove:
+                        skill.class_ = False
+            
+            character.changed = True
+
+        if skill_choice == 'individual':
+
+            skill_to_modify = prompt('what skill? > ', 
+                    completer=WordCompleter(skill_list), 
+                    validator=WordValidator(skill_list)
+            )
+            
+            for skill in character.skill_list:
+                if skill.name == skill_to_modify:
+                    opt_list = ['rank', 'bonus']
+                    skill_option = prompt(f'current skill rank is {skill.rank}, bonus is {skill.bonus}, for a total of {skill.total}. change rank or bonus? > ', 
+                            completer=WordCompleter(opt_list), 
+                            validator=WordValidator(opt_list)
+                    )
+
+                    if skill_option == 'rank':
+                        new_rank = Utils.str2int(prompt('what is the new skill rank? > ', 
+                                validator=NumberValidator()
+                        ))
+
+                        skill.rank = new_rank
+
+                    if skill_option == 'bonus':
+                        new_bonus = Utils.str2int(prompt('what is the new skill bonus? > ', 
+                                validator=NumberValidator()
+                        ))
+
+                        skill.bonus = new_bonus
+
+            self.character.changed = True
     
     def modify_saves(self, character):
         saves_list = []
