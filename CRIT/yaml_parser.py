@@ -1,4 +1,4 @@
-import toml
+import yaml
 import os
 import sys
 from pathlib import PurePath
@@ -8,13 +8,12 @@ from CRIT.models import Attribute, Character, Item, Save, Skill, Spell, Weapon, 
 from CRIT.config import Config
 
 
-class TomlParser:
-    # inactive in lieu of yaml for character sheets
-    # was a bit too complicated as i added more complex data
+class YamlParser:
+    
     @staticmethod
     def load_character(sheet_to_load):
         with open(sheet_to_load, 'r') as f:
-            char_data = toml.load(f)
+            char_data = yaml.load(f)
             character = Character()
             character.sheet = sheet_to_load
             character.hp = char_data['hp']
@@ -69,7 +68,7 @@ class TomlParser:
         return character
 
     @staticmethod
-    def save_character(character):  # TODO make character completely toml serializable
+    def save_character(character):  # TODO make character completely yaml serializable
         try:
             char_data = {}
             char_data['name'] = character.name
@@ -124,7 +123,7 @@ class TomlParser:
 
             char_data['feats'] = character.feat_list
 
-            char_file = PurePath(f'{Config.sheets_path}', character.name.replace(' ', '_'), f'CRIT{character.name}.toml'.replace(' ', '_'))
+            char_file = PurePath(f'{Config.sheets_path}', character.name.replace(' ', '_'), f'CRIT{character.name}.yaml'.replace(' ', '_'))
             really = True
 
             if os.path.isfile(char_file):
@@ -135,7 +134,7 @@ class TomlParser:
 
             else:
                 with open(char_file, 'r+') as f:
-                    existing_data = toml.load(f)
+                    existing_data = yaml.load(f)
                     if 'usr' in existing_data:
                         char_data['usr'] = existing_data['usr']
 
@@ -143,7 +142,7 @@ class TomlParser:
                         char_data['feats'] = existing_data['feats']
 
                 with open(char_file, 'w') as outfile:
-                    toml.dump(char_data, outfile)
+                    yaml.dump(char_data, outfile)
                     print(f'UPDATED {character.name}')
 
                 sys.exit(0)

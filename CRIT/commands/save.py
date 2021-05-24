@@ -1,9 +1,9 @@
+from CRIT.yaml_parser import YamlParser
 from CRIT.enums import Enums
 from prompt_toolkit.completion.word_completer import WordCompleter
 from CRIT.validator import WordValidator
 from CRIT.commands import Command
 from CRIT.utils import Utils
-from CRIT.toml_parser import TomlParser
 from prompt_toolkit import prompt
 
 
@@ -24,5 +24,5 @@ Usage: {keyword}
                 validator=WordValidator(Enums.bool_choices)
         )):
 
-            TomlParser.save_character(self.character)
+            YamlParser.save_character(self.character)
             self.console.print(f'[bold green] UPDATED {self.character.name} [/bold green]')
