@@ -2,7 +2,7 @@ import math
 import os
 from pathlib import Path
 import toml
-import toml
+import yaml
 
 from prompt_toolkit.completion.word_completer import WordCompleter
 from prompt_toolkit import prompt
@@ -43,7 +43,7 @@ class Utils:
             os.mkdir(path)
 
         for elem in os.listdir(path):
-            _list.append(elem.removesuffix('.toml').removesuffix('.json').removeprefix('CRIT'))
+            _list.append(elem.removesuffix('.yaml').removesuffix('.json').removeprefix('CRIT'))
 
         return(_list)
 
@@ -226,7 +226,7 @@ class Utils:
                     char_data['cmb_mod'] = 'strength'
 
                     really = True
-                    if os.path.isfile(Path(Config.sheets_path, char_name, f'CRIT{char_name}.toml'.replace(' ', '_'))):
+                    if os.path.isfile(Path(Config.sheets_path, char_name, f'CRIT{char_name}.yaml'.replace(' ', '_'))):
                         really = Utils.str2bool(prompt(f'sheet for {char_name} exists, overwrite? > ', 
                                 completer=WordCompleter(Enums.bool_choices), 
                                 validator=WordValidator(Enums.bool_choices)
@@ -243,8 +243,8 @@ class Utils:
                         except:
                             pass
 
-                        with open(Path(Config.sheets_path, char_name, f'CRIT{char_name}.toml'.replace(' ', '_')), 'w+') as outfile:
-                            toml.dump(char_data, outfile)
+                        with open(Path(Config.sheets_path, char_name, f'CRIT{char_name}.yaml'.replace(' ', '_')), 'w+') as outfile:
+                            yaml.dump(char_data, outfile)
 
                         console.print(f'[bold green] CREATED {char_name} [/bold green]')
 
@@ -263,7 +263,7 @@ class Utils:
     @staticmethod
     def user_output(character, console):
         with open (character.sheet, 'r') as f:
-            existing_data = toml.load(f)
+            existing_data = yaml.load(f)
             grid = Table.grid(expand=True)
             for key in existing_data['usr'].keys():
                 temp = Table(box=box.ROUNDED, title='')
