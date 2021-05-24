@@ -13,7 +13,7 @@ class YamlParser:
     @staticmethod
     def load_character(sheet_to_load):
         with open(sheet_to_load, 'r') as f:
-            char_data = yaml.load(f)
+            char_data = yaml.load(f, Loader=yaml.FullLoader)
             character = Character()
             character.sheet = sheet_to_load
             character.hp = char_data['hp']
@@ -134,7 +134,7 @@ class YamlParser:
 
             else:
                 with open(char_file, 'r+') as f:
-                    existing_data = yaml.load(f)
+                    existing_data = yaml.load(f, Loader=yaml.FullLoader)
                     if 'usr' in existing_data:
                         char_data['usr'] = existing_data['usr']
 

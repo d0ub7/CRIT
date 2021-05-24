@@ -13,7 +13,7 @@ class Save(Command):
     keywords = ['save']
     help_text = '''{keyword}
 {divider}
-Summary: Save to toml
+Summary: Save to yaml
 
 Usage: {keyword}
 '''

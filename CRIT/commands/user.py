@@ -1,4 +1,4 @@
-import toml
+import yaml
 
 from CRIT.commands import Command
 from CRIT.utils import Utils
@@ -28,18 +28,18 @@ Usage: {keyword}
 
         if user_option == 'add':
             with open (self.character.sheet, 'r') as f:
-                existing_data = toml.load(f)
+                existing_data = yaml.load(f, Loader=yaml.FullLoader)
                 key_to_add = prompt('what to add to user space > ')
                 existing_data['usr'] = {key_to_add: []}
 
             with open (self.character.sheet, 'w+') as outfile:
-                toml.dump(existing_data, outfile)
+                yaml.dump(existing_data, outfile)
 
             self.console.print(f'[bold green] UPDATED {self.character.name} [/bold green]')
 
         elif user_option == 'modify':
             with open (self.character.sheet, 'r') as f:
-                existing_data = toml.load(f)
+                existing_data = yaml.load(f, Loader=yaml.FullLoader)
                 values = existing_data['usr'].keys()
                 attr_to_update = prompt('what to update > ', 
                         completer=WordCompleter(values), 
@@ -50,7 +50,7 @@ Usage: {keyword}
                 existing_data['usr'][attr_to_update].append(value_to_add)
 
             with open (self.character.sheet, 'w+') as outfile:
-                toml.dump(existing_data, outfile)
+                yaml.dump(existing_data, outfile)
 
             self.console.print(f'[bold green] UPDATED {self.character.name} [/bold green]')
 
