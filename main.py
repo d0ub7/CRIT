@@ -23,7 +23,7 @@ from CRIT.charutils import CharUtils
 from CRIT.compat import clear, pause, set_terminal_size, set_terminal_title
 from CRIT.config import Config
 from CRIT.enums import Enums
-from CRIT.toml_parser import TomlParser
+from CRIT.yaml_parser import YamlParser
 from CRIT.validator import WordValidator
 from CRIT.utils import Utils
 from CRIT.loader import load_commands
@@ -310,9 +310,9 @@ class TUI:
                         validator=WordValidator(sheets_path)
         )
 
-        sheet_to_load = Path(Config.sheets_path, sheet_to_load, f'CRIT{sheet_to_load}.toml'.replace(' ', '_'))
+        sheet_to_load = Path(Config.sheets_path, sheet_to_load, f'CRIT{sheet_to_load}.yaml'.replace(' ', '_'))
         self.console.print('get character')
-        self.character = TomlParser.load_character(sheet_to_load)
+        self.character = YamlParser.load_character(sheet_to_load)
         self.console.print('setup attributes')
         CharUtils.setup_attributes(self.character)
         self.console.print('setup saves')
@@ -368,6 +368,6 @@ class TUI:
 
 if __name__ == '__main__':
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
-    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    #os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
