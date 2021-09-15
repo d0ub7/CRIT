@@ -28,7 +28,7 @@ class CharUtils:
                         ac_buffs.append(Ac(ac = bonus['value']
                                         , type_ = bonus['type']
                                         , acp = 0
-                                        , dex_mod = 0
+                                        , dex_mod = -1 # negative one is "infinite"
                         ))
 
         acdict = {}

@@ -229,26 +229,29 @@ class TUI:
         save_table = Table(box=box.ROUNDED, title='SAVES')
         grid = Table.grid(expand=True)
         panel_grid = Table.grid()
-        panel_grid.add_column(f'', justify='center',style='white',no_wrap=True)
-        panel_grid.add_row(Panel.fit(f'[red]{self.character.hp}[/red]/{self.character.max_hp}',title='HP'),
-                            Panel.fit(f'{self.character.bab}', title='BAB'), 
-                            Panel.fit(f'{self.character.cmb}', title='CMB'), 
-                            Panel.fit(f'{self.character.cmd}', title='CMD')
+        panel_grid.add_column(f'', justify='center', style='white',no_wrap=True)
+        panel_grid.add_column(f'', justify='center', style='white', no_wrap=True)
+        panel_grid.add_column(f'', justify='center', style='white', no_wrap=True)
+        panel_grid.add_column(f'', justify='center', style='white', no_wrap=True)
+        panel_grid.add_row(Panel(f'[red]{self.character.hp}[/red]/{self.character.max_hp}',title='HP'),
+                            Panel(f'{self.character.bab}', title='BAB'), 
+                            Panel(f'{self.character.cmb}', title='CMB'), 
+                            Panel(f'{self.character.cmd}', title='CMD')
         )
 
-        panel_grid.add_row(Panel.fit(f'{self.character.ac}', title='AC'),
-                            Panel.fit(f'{self.character.touchac}', title='Touch AC'),
-                            Panel.fit(f'{self.character.ffac}', title='FF AC')
+        panel_grid.add_row(Panel(f'{self.character.ac}', title='AC'),
+                            Panel(f'{self.character.touchac}', title='Touch'),
+                            Panel(f'{self.character.ffac}', title='Flat-Footed')
         )
 
         attr_table.add_column(f'Attribute', justify='center', style='bright_red', no_wrap=True)
         attr_table.add_column(f'Value', justify='center', style='cyan', no_wrap=True)
-        attr_table.add_column(f'Mod', justify='center', style='green', no_wrap=True)
+        attr_table.add_column(f'Mod', justify='right', style='green', no_wrap=True)
         for attr in self.character.attr_list:
             attr_table.add_row(f'{attr.name}', f'{attr.total}', f'{attr.mod}')
 
         save_table.add_column(f'Save', justify='center', style='bright_red', no_wrap=True)
-        save_table.add_column(f'Value', justify='center', style='cyan', no_wrap=True)
+        save_table.add_column(f'Value', justify='right', style='cyan', no_wrap=True)
         for save in self.character.save_list:
             save_table.add_row(f'{save.name}', f'{save.total}')
 
@@ -256,7 +259,7 @@ class TUI:
         grid.add_column(justify='center')
         skill_table = Table(box=box.ROUNDED, title='SKILLS')
         skill_table.add_column('Skill', justify='center', style='bright_red', no_wrap=True)
-        skill_table.add_column('Rank', justify='center', style='cyan', no_wrap=True)
+        skill_table.add_column('Rank', justify='right', style='cyan', no_wrap=True)
         for skill in self.character.skill_list:
             skill_table.add_row(f'{skill.name}', f'{skill.total}')
 
@@ -368,6 +371,6 @@ class TUI:
 
 if __name__ == '__main__':
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
-    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    #os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
