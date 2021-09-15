@@ -371,6 +371,6 @@ class TUI:
 
 if __name__ == '__main__':
     set_terminal_title(f'Character Resources In Terminal v{__version__}')
-    #os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
+    os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     app = TUI()
     app.start()
