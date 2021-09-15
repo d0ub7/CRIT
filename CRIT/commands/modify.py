@@ -24,7 +24,7 @@ Examples:
 
     def do_command(self, *args): #TODO add proper args support
         if not args:
-            mod_list = ['maxhp', 'skill', 'attribute', 'save', 'cmb_mod']
+            mod_list = ['maxhp', 'skill', 'attribute', 'save', 'cmb_mod', 'size']
             modify_option = prompt('modify > ', 
                     completer=WordCompleter(mod_list), 
                     validator=WordValidator(mod_list)
@@ -48,6 +48,14 @@ Examples:
         
         if modify_option == 'save':
             self.modify_saves(self.character)
+        
+        if modify_option == 'size':
+            new_size = prompt('What size are you now? > ',
+                        completer=WordCompleter(Enums.sizes),
+                        validator=WordValidator(Enums.sizes)
+            )
+            self.character.size = new_size
+            self.character.changed = True
             
         if modify_option == 'cmb_mod':
             new_cmb_mod = prompt(f'cmb mod is currently {self.character.cmb_mod}, what should it be? > ',
@@ -56,7 +64,7 @@ Examples:
             )
 
             self.character.cmb_mod = new_cmb_mod
-            self.character.changed = True
+            self.self.character.changed = True
         
     def modify_attribute(self, character):
         attr_to_modify = prompt('which attribute? > ', 
@@ -86,7 +94,7 @@ Examples:
 
                     attr.bonus = new_bonus
 
-        self.character.changed = True
+        character.changed = True
 
     def modify_maxhp(self, character):
         maxhp = Utils.str2int(prompt('new max hp? > ', 
@@ -94,7 +102,7 @@ Examples:
         ))
 
         character.max_hp = maxhp
-        self.character.changed = True
+        character.changed = True
 
     def modify_skills(self, character):
         skill_list = []
@@ -174,7 +182,7 @@ Examples:
 
                         skill.bonus = new_bonus
 
-            self.character.changed = True
+            character.changed = True
     
     def modify_saves(self, character):
         saves_list = []
@@ -195,4 +203,4 @@ Examples:
                 
                 sav.bonus = new_bonus
 
-        self.character.changed = True
+        character.changed = True
