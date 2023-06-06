@@ -9,14 +9,13 @@ from prompt_toolkit import HTML, PromptSession, prompt
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.completion.base import Completer
-from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.completion import Completion
 from prompt_toolkit.completion.word_completer import WordCompleter
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
-
 
 from CRIT import __version__
 from CRIT.charutils import CharUtils
